@@ -82,6 +82,7 @@ public class GameTracker
 	private int points;
 	private int round = 1;
 	private int loadedThisRound;
+	private int wavesThisRound;
 	private boolean waveIncoming;
 	private boolean wonSeen;
 	/** "12s" up, or "~8s left" once we've learnt how long doubles last. */
@@ -292,6 +293,7 @@ public class GameTracker
 		if (msg.contains(Ids.WAVE_INCOMING))
 		{
 			waveIncoming = true;
+			wavesThisRound++;
 			waveHitsAt = System.currentTimeMillis() + Ids.WAVE_MS;
 			onWave.run();
 		}
@@ -397,6 +399,7 @@ public class GameTracker
 			chosenPool = null;
 			round++;
 			loadedThisRound = 0;
+			wavesThisRound = 0;
 			if (game != null)
 			{
 				game.rounds = round;
@@ -466,6 +469,7 @@ public class GameTracker
 		startCookingXp = client.getSkillExperience(Skill.COOKING);
 		round = 1;
 		loadedThisRound = 0;
+		wavesThisRound = 0;
 		lowestPoolEssence = 100;
 		wonSeen = false;
 		permitsAtStart = client.getVarbitValue(VarbitID.TEMPOROSS_REWARDPERMITS);
@@ -743,6 +747,7 @@ public class GameTracker
 		s.nearCrate = crate >= 0 && crate <= CRATE_REACH;
 		s.secondsToCrate = StormClock.runSeconds(crate);
 		s.loadedThisRound = loadedThisRound;
+		s.wavesThisRound = wavesThisRound;
 		s.stormSecondsLeft = storm.secondsUntil(100);
 	}
 

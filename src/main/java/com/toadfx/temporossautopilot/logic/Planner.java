@@ -246,6 +246,8 @@ public final class Planner
 				return "Catch 8 and cook them while you wait for a double spot. Aim for " + String.format("%,d", set.pointsTarget) + " points.";
 			case RECOMMENDED_MASS:
 				return "Catch 9 at the nearest spot and cook them, then fill up at a double spot.";
+			case MY_ROUTE:
+				return "Catch 7 and cook them, then fish the double spot until the wave.";
 			case MAX_PERMITS:
 				return "Cook 7 at a time (9 at 85+ Fishing) and start loading at 49% energy.";
 			default:
@@ -262,7 +264,7 @@ public final class Planner
 		{
 			permits += " + " + Permits.bonusChance(s.points) + "% roll";
 		}
-		if (set.style == PlayStyle.MAX_PERMITS || set.style == PlayStyle.RECOMMENDED_MASS)
+		if (set.style == PlayStyle.MAX_PERMITS || set.style == PlayStyle.RECOMMENDED_MASS || set.style == PlayStyle.MY_ROUTE)
 		{
 			return Instruction.soon("Leave now", "Subdued! " + permits + ". Right-click Leave on the first mate for the next game.", Target.LEAVE);
 		}
@@ -320,7 +322,102 @@ public final class Planner
 		{
 			return Instruction.soon("Head to the spirit pool", "Energy is 0. Be there when it opens: +55 points a scatter.", Target.SPIRIT_POOL);
 		}
+		if (set.style == PlayStyle.MY_ROUTE && s.round == 1)
+		{
+			if (s.energy >= ROUTE_POOL_UNTIL)
+			{
+				return fishStep(s, "Back to fishing", "Tempoross is at " + s.energy + "%. Fish for the next load.");
+			}
+			return Instruction.of("Attack the spirit pool", "Stay until Tempoross is back to " + ROUTE_POOL_UNTIL + "% (now " + Math.max(0, s.energy) + "%).", Target.SPIRIT_POOL);
+		}
+		if (set.style == PlayStyle.MY_ROUTE)
+		{
+			return Instruction.of("Attack the spirit pool", "Stay until Tempoross is subdued, then leave.", Target.SPIRIT_POOL);
+		}
 		return Instruction.of("Attack the spirit pool", "+55 points a scatter until Tempoross is subdued.", Target.SPIRIT_POOL);
+	}
+
+	// --------------------------------------------------------------------- ToadFx mass route
+
+	/** Leave the first spirit pool once Tempoross is back to this energy. */
+	static final int ROUTE_POOL_UNTIL = 90;
+	/** From the second round on, load everything once energy drops to this. */
+	static final int ROUTE_LOAD_AT = 35;
+
+	/**
+	 * Todd's route. Round 1: catch 7, cook them, fish the double spot until the wave, after the
+	 * wave fish the double (or the nearest spot) until the bag is full, cook it all, load until
+	 * empty (or energy hits 0), then the spirit pool until energy is back to 90%. Round 2 on: fish,
+	 * load everything at 35% energy, then the spirit pool until the end.
+	 */
+	static Instruction route(Snapshot s, PlannerSettings set)
+	{
+		int cooked = s.cooked + s.crystal;
+		if (s.round <= 1)
+		{
+			// Already loading: keep going until the bag is empty.
+			if (s.nearCrate && cooked > 0 && s.raw == 0)
+			{
+				return Instruction.of("Load the cannon", "Load until your bag is empty (" + cooked + " left).", Target.CRATE);
+			}
+			if (s.bagFull() && s.raw > 0)
+			{
+				return Instruction.of("Cook at the shrine", "Bag full: cook all " + s.raw + " before loading.", Target.SHRINE);
+			}
+			if (s.bagFull() && cooked > 0)
+			{
+				return Instruction.of("Load the cannon", "Load until your bag is empty or Tempoross hits 0%.", Target.CRATE);
+			}
+			boolean opener = s.wavesThisRound == 0 && cooked == 0 && s.loadedThisRound == 0;
+			if (opener && s.raw >= set.style.openingBatch())
+			{
+				return Instruction.of("Cook at the shrine", "Cook your first " + s.raw + ", then go to the double spot.", Target.SHRINE);
+			}
+			if (opener)
+			{
+				return fishStep(s, "Fish harpoonfish", "Catch " + set.style.openingBatch() + " to start (" + s.raw + " so far).");
+			}
+			if (s.wavesThisRound == 0)
+			{
+				return s.doubleSpot
+					? Instruction.of("Fish the double spot", "Stay here until the wave comes.", Target.DOUBLE_SPOT)
+					: fishStep(s, "Fish harpoonfish", "No double spot yet. Fish here until the wave.");
+			}
+			if (s.loadedThisRound > 0 && s.fish() == 0)
+			{
+				return Instruction.soon("Head to the spirit pool", "All loaded. Wait at the pool for Tempoross to go down.", Target.SPIRIT_POOL);
+			}
+			return fishStep(s, "Fish until full", s.freeSlots + " slots left, then cook it all.");
+		}
+
+		// Round 2 on.
+		if (s.energy >= 0 && s.energy <= ROUTE_LOAD_AT && s.fish() > 0)
+		{
+			return Instruction.of("Load the cannon", "Tempoross is at " + s.energy + "%: load everything (" + s.fish() + " fish).", Target.CRATE);
+		}
+		if (s.energy >= 0 && s.energy <= 3)
+		{
+			return Instruction.soon("Head to the spirit pool", "Stay there until Tempoross is subdued, then leave.", Target.SPIRIT_POOL);
+		}
+		if (s.bagFull() && s.raw > 0)
+		{
+			return Instruction.of("Cook at the shrine", "Bag full: cook while Tempoross drops to " + ROUTE_LOAD_AT + "%.", Target.SHRINE);
+		}
+		if (s.bagFull())
+		{
+			return Instruction.of("Wait by the cannon", "Load everything when Tempoross reaches " + ROUTE_LOAD_AT + "% (now " + s.energy + "%).", Target.CRATE);
+		}
+		return fishStep(s, "Fish harpoonfish", "Load at " + ROUTE_LOAD_AT + "% (Tempoross is at " + Math.max(0, s.energy) + "%).");
+	}
+
+	/** Fish the double spot if there is one, otherwise the nearest spot. */
+	private static Instruction fishStep(Snapshot s, String title, String detail)
+	{
+		if (s.doubleSpot && !s.bagFull())
+		{
+			return Instruction.of("Fish the double spot", detail, Target.DOUBLE_SPOT);
+		}
+		return Instruction.of(title, detail, Target.FISHING_SPOT);
 	}
 
 	static Instruction energy(Snapshot s, PlannerSettings set)
@@ -334,6 +431,15 @@ public final class Planner
 		if (loadable > 0 && remaining != 0 && stormDanger(s, set))
 		{
 			return Instruction.now("Load now", "Storm at " + s.storm + "%. Get " + loadable + " fish in before it fills.", Target.CRATE);
+		}
+
+		if (set.style == PlayStyle.MY_ROUTE && set.mode != GameMode.SOLO)
+		{
+			if (s.fireDistance >= 0 && s.fireDistance <= FIRE_IN_THE_WAY && s.waterBuckets > 0)
+			{
+				return Instruction.soon("Douse the fire", "It's right next to you and spreads fast (+40).", Target.FIRE);
+			}
+			return route(s, set);
 		}
 
 		if (set.style == PlayStyle.CHILL && s.points >= Permits.FIRST)

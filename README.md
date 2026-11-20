@@ -15,6 +15,7 @@ highlights and your post-game grade all follow it.
 | Style | Cooking | What Autopilot does | Graded on |
 |---|---|---|---|
 | **Recommended mass** (default) | Opener, then full bag | Theoatrix's mass run: catch 9 at the nearest spot and cook them, fill up at a double spot, cook it all, load a full bag, fish until he's down, then the spirit pool. Leave right away after the win | permits per game |
+| **ToadFx mass route** | Opener of 7, then full bag | Round 1: catch 7 and cook them, fish the double spot until the wave, then the double (or the nearest spot) until the bag is full, cook it all, load until empty (or 0% energy), spirit pool until Tempoross is back to 90%. Round 2 on: fish, load everything at 35% energy, spirit pool until he's subdued, then leave | permits per game |
 | **Max permits / hr** | In batches | The wiki cooking method: catch 7 (9 at 85+), cook, start loading at 49% energy, leave right away after the win | permits per hour |
 | **Max points / game** | Opener, then full bag | Theoatrix's max points: catch about 8 and cook them while you wait for a double spot, fill up there, load a full bag; also douses fires and fixes masts, counting down to your points target | points per game |
 | **Max Fishing XP** | Never | Theoatrix's XP setup (crystal harpoon, spirit angler outfit, Imcando hammer): double spots first, then the spirit pool; loads raw only when the bag is full | Fishing XP per hour |

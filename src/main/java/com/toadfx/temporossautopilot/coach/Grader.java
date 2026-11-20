@@ -117,6 +117,7 @@ public final class Grader
 					return -10;
 				}
 				return 0;
+			case MY_ROUTE:
 			case RECOMMENDED_MASS:
 				if (r.fishCaught > 10 && r.fishCooked * 10 < r.fishCaught * 8)
 				{

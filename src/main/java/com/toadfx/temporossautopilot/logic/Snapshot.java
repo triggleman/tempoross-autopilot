@@ -58,6 +58,8 @@ public class Snapshot
 
 	/** Fish this player has loaded since the current energy round started. */
 	public int loadedThisRound;
+	/** Waves that have started in this energy round. */
+	public int wavesThisRound;
 	/** Seconds until the storm reaches the danger mark at its current rate, or -1 if not rising. */
 	public int stormSecondsLeft = -1;
 	/** Seconds to walk to the crate from here, or -1 if unknown. */
@@ -79,7 +81,7 @@ public class Snapshot
 		c.waveIncoming = waveIncoming; c.tethered = tethered; c.doubleSpot = doubleSpot;
 		c.spiritPool = spiritPool; c.poolInactive = poolInactive;
 		c.fireDistance = fireDistance; c.damagedTetherDistance = damagedTetherDistance;
-		c.nearCrate = nearCrate; c.cooking = cooking; c.loadedThisRound = loadedThisRound;
+		c.nearCrate = nearCrate; c.cooking = cooking; c.loadedThisRound = loadedThisRound; c.wavesThisRound = wavesThisRound;
 		c.stormSecondsLeft = stormSecondsLeft; c.secondsToCrate = secondsToCrate;
 		return c;
 	}

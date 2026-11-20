@@ -68,6 +68,24 @@ public final class Lookahead
 				{
 					want = s.freeSlots;
 				}
+				else if (set.style == com.toadfx.temporossautopilot.model.PlayStyle.MY_ROUTE)
+				{
+					boolean opener = s.round <= 1 && s.wavesThisRound == 0 && s.cooked + s.crystal == 0 && s.loadedThisRound == 0;
+					if (opener)
+					{
+						want = Math.max(1, set.style.openingBatch() - s.raw);
+					}
+					else if (s.round <= 1 && s.wavesThisRound == 0)
+					{
+						// Fishing the double until the wave: the next thing is the wave.
+						s.waveIncoming = true;
+						return true;
+					}
+					else
+					{
+						want = s.freeSlots;
+					}
+				}
 				else if (cook == CookRule.OPENER_THEN_FULL_BAG)
 				{
 					want = s.cooked + s.crystal == 0 ? Math.max(1, set.style.openingBatch() - s.raw) : s.freeSlots;
@@ -94,7 +112,12 @@ public final class Lookahead
 				return true;
 			case CRATE:
 			{
-				int load = Planner.loadable(s, cook);
+				if (step.getTitle().startsWith("Wait"))
+				{
+					s.energy = Math.min(s.energy, 35);
+					return true;
+				}
+				int load = set.style == com.toadfx.temporossautopilot.model.PlayStyle.MY_ROUTE && s.round > 1 ? s.fish() : Planner.loadable(s, cook);
 				if (load <= 0)
 				{
 					return false;
@@ -132,6 +155,11 @@ public final class Lookahead
 					s.spiritPool = true;
 					return true;
 				}
+				if (set.style == com.toadfx.temporossautopilot.model.PlayStyle.MY_ROUTE && s.round == 1 && s.phase == Phase.ESSENCE && s.energy < 90)
+				{
+					s.energy = 90;
+					return true;
+				}
 				// Tempoross recovers (or is subdued); plan for the next round.
 				s.phase = Phase.ENERGY;
 				s.energy = 100;
@@ -144,6 +172,7 @@ public final class Lookahead
 			case TETHER:
 				s.waveIncoming = false;
 				s.tethered = false;
+				s.wavesThisRound++;
 				return true;
 			case DAMAGED_TETHER:
 				s.damagedTetherDistance = -1;
