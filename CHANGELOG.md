@@ -9,7 +9,7 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
-- New play style "ToadFx mass route" (Todd's own route).
+- New play style "ToadFx mass route" (Todd's own route): opener of 8; in later rounds a fully cooked bag is loaded before 35%, then you wait at the spirit pool. Cooking no longer counts as loading near a crate.
 - Spirit pools that open without respawning are now tracked; the pool on your side is picked when the pool step starts and kept for the round. Double spot timer (time up, then time left once it has learnt how long doubles last).
 - Points at the nearest spirit pool (there is one on each side); a short loading blip no longer splits or ends a game; games with 0 points are not recorded.
 - Path line to the next step's target (and on the minimap), ported from GOTR Coach.

@@ -345,10 +345,11 @@ public final class Planner
 	static final int ROUTE_LOAD_AT = 35;
 
 	/**
-	 * Todd's route. Round 1: catch 7, cook them, fish the double spot until the wave, after the
+	 * Todd's route. Round 1: catch 8, cook them, fish the double spot until the wave, after the
 	 * wave fish the double (or the nearest spot) until the bag is full, cook it all, load until
-	 * empty (or energy hits 0), then the spirit pool until energy is back to 90%. Round 2 on: fish,
-	 * load everything at 35% energy, then the spirit pool until the end.
+	 * empty (or energy hits 0), then the spirit pool until energy is back to 90%. Round 2 on: fish
+	 * and cook a full bag; load it all when it's cooked or at 35% energy (whichever is first), wait at
+	 * the spirit pool until energy is 0, then fish the pool until the end.
 	 */
 	static Instruction route(Snapshot s, PlannerSettings set)
 	{
@@ -395,19 +396,24 @@ public final class Planner
 		{
 			return Instruction.of("Load the cannon", "Tempoross is at " + s.energy + "%: load everything (" + s.fish() + " fish).", Target.CRATE);
 		}
-		if (s.energy >= 0 && s.energy <= 3)
+		// Already loading: keep going until the bag is empty.
+		if (s.nearCrate && cooked > 0 && s.raw == 0)
 		{
-			return Instruction.soon("Head to the spirit pool", "Stay there until Tempoross is subdued, then leave.", Target.SPIRIT_POOL);
+			return Instruction.of("Load the cannon", "Load until your bag is empty (" + cooked + " left).", Target.CRATE);
 		}
 		if (s.bagFull() && s.raw > 0)
 		{
-			return Instruction.of("Cook at the shrine", "Bag full: cook while Tempoross drops to " + ROUTE_LOAD_AT + "%.", Target.SHRINE);
+			return Instruction.of("Cook at the shrine", "Bag full: cook all " + s.raw + ", then load it.", Target.SHRINE);
 		}
 		if (s.bagFull())
 		{
-			return Instruction.of("Wait by the cannon", "Load everything when Tempoross reaches " + ROUTE_LOAD_AT + "% (now " + s.energy + "%).", Target.CRATE);
+			return Instruction.of("Load the cannon", "Bag all cooked before " + ROUTE_LOAD_AT + "%: load it all, then wait at the spirit pool.", Target.CRATE);
 		}
-		return fishStep(s, "Fish harpoonfish", "Load at " + ROUTE_LOAD_AT + "% (Tempoross is at " + Math.max(0, s.energy) + "%).");
+		if (s.loadedThisRound > 0 && s.fish() == 0 || s.energy >= 0 && s.energy <= 3)
+		{
+			return Instruction.soon("Wait at the spirit pool", "Tempoross is at " + Math.max(0, s.energy) + "%. Wait here until he hits 0%, then fish the pool to the end.", Target.SPIRIT_POOL);
+		}
+		return fishStep(s, "Fish harpoonfish", "Fill and cook your bag, or load at " + ROUTE_LOAD_AT + "% (Tempoross is at " + Math.max(0, s.energy) + "%).");
 	}
 
 	/** Fish the double spot if there is one, otherwise the nearest spot. */

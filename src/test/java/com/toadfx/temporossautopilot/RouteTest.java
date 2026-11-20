@@ -40,12 +40,12 @@ public class RouteTest
 	public void roundOneOpener()
 	{
 		Snapshot s = start();
-		s.raw = 6;
-		s.freeSlots = 18;
-		s.doubleSpot = true;
-		assertEquals("Opener first, even with a double up", "Fish the double spot", Planner.plan(s, route()).getTitle());
 		s.raw = 7;
 		s.freeSlots = 17;
+		s.doubleSpot = true;
+		assertEquals("Opener first, even with a double up", "Fish the double spot", Planner.plan(s, route()).getTitle());
+		s.raw = 8;
+		s.freeSlots = 16;
 		assertEquals(Target.SHRINE, Planner.plan(s, route()).getTarget());
 	}
 
@@ -91,6 +91,29 @@ public class RouteTest
 		assertEquals("Attack the spirit pool", Planner.plan(s, route()).getTitle());
 		s.energy = 90;
 		assertEquals("Back to fishing", Planner.plan(s, route()).getTitle());
+	}
+
+	@Test
+	public void roundTwoFullCookedBagLoadsEarlyThenWaitsAtPool()
+	{
+		Snapshot s = start();
+		s.round = 2;
+		s.energy = 70;
+		s.cooked = 28;
+		s.freeSlots = 0;
+		assertEquals(Target.CRATE, Planner.plan(s, route()).getTarget());
+		s.cooked = 12;
+		s.freeSlots = 16;
+		s.nearCrate = true;
+		s.loadedThisRound = 16;
+		assertEquals("Keep loading till empty", Target.CRATE, Planner.plan(s, route()).getTarget());
+		s.cooked = 0;
+		s.freeSlots = 28;
+		s.loadedThisRound = 28;
+		s.nearCrate = false;
+		Instruction wait = Planner.plan(s, route());
+		assertEquals("Wait at the spirit pool", wait.getTitle());
+		assertEquals(Target.SPIRIT_POOL, wait.getTarget());
 	}
 
 	@Test

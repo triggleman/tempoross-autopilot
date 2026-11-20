@@ -147,7 +147,7 @@ public final class Lookahead
 				return true;
 			}
 			case SPIRIT_POOL:
-				if (step.getTitle().startsWith("Head to"))
+				if (step.getTitle().startsWith("Head to") || step.getTitle().startsWith("Wait at"))
 				{
 					// Walked there: the pool opens.
 					s.phase = Phase.ESSENCE;

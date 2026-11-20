@@ -694,13 +694,15 @@ public class GameTracker
 			{
 				game.fishCooked += dCooked;
 			}
-			if (atCrate && !waveIncoming)
+			// Loading: the total number of fish drops (cooking only swaps raw for cooked).
+			int out = -(dRaw + dCooked + dCrystal);
+			if (atCrate && !waveIncoming && out > 0)
 			{
-				int rawOut = Math.max(0, -dRaw) + Math.max(0, -dCrystal);
-				int cookedOut = Math.max(0, -dCooked);
+				int cookedOut = Math.min(out, Math.max(0, -dCooked));
+				int rawOut = out - cookedOut;
 				game.loadedRaw += rawOut;
 				game.loadedCooked += cookedOut;
-				loadedThisRound += rawOut + cookedOut;
+				loadedThisRound += out;
 			}
 		}
 		lastRaw = s.raw;
