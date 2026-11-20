@@ -17,6 +17,8 @@ public final class Ids
 	public static final int COVE_REGION = 12076;
 	/** The boat at the Ruins of Unkah where players wait for the next game. */
 	public static final int BOAT_REGION = 12332;
+	/** Ruins of Unkah around the boat and reward pool. */
+	public static final int LOBBY_REGION = 12588;
 
 	// NPCs
 	public static final int DOUBLE_SPOT = NpcID.TEMPOROSS_HARPOONFISH_FISHINGSPOT_SPECIAL;

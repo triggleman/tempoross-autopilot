@@ -4,6 +4,7 @@ import com.toadfx.temporossautopilot.coach.GameRecord;
 import com.toadfx.temporossautopilot.logic.Phase;
 import com.toadfx.temporossautopilot.logic.Snapshot;
 import com.toadfx.temporossautopilot.logic.StormClock;
+import com.toadfx.temporossautopilot.model.Harpoon;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +39,9 @@ public class GameTracker
 	private static final int IDLE_GRACE_TICKS = 3;
 
 	private final Client client;
+	private final GearMemory gear;
 	private final StormClock storm = new StormClock();
+	private int region;
 
 	// Scene, kept from spawn and despawn events.
 	private final Set<NPC> spots = new HashSet<>();
@@ -82,9 +85,10 @@ public class GameTracker
 	private Runnable onDoubleSpot = () -> { };
 	private Runnable onWave = () -> { };
 
-	public GameTracker(Client client)
+	public GameTracker(Client client, GearMemory gear)
 	{
 		this.client = client;
+		this.gear = gear;
 	}
 
 	public void setListeners(Consumer<GameRecord> onGameEnd, Runnable onDoubleSpot, Runnable onWave)
@@ -235,7 +239,7 @@ public class GameTracker
 			return;
 		}
 		WorldPoint here = me.getWorldLocation();
-		int region = WorldPoint.fromLocalInstance(client, me.getLocalLocation()).getRegionID();
+		region = WorldPoint.fromLocalInstance(client, me.getLocalLocation()).getRegionID();
 		boolean inCove = region == Ids.COVE_REGION;
 		boolean onBoat = region == Ids.BOAT_REGION;
 
@@ -476,6 +480,7 @@ public class GameTracker
 				}
 				harpoon |= Ids.HARPOONS.contains(id);
 				hammer |= Ids.HAMMERS.contains(id);
+				s.carriedHarpoon = Harpoon.best(s.carriedHarpoon, Harpoon.of(id), com.toadfx.temporossautopilot.model.PlayStyle.MAX_PERMITS);
 			}
 		}
 		int angler = 0;
@@ -483,12 +488,35 @@ public class GameTracker
 		{
 			for (Item it : worn.getItems())
 			{
-				harpoon |= Ids.HARPOONS.contains(it.getId());
-				hammer |= Ids.HAMMERS.contains(it.getId());
-				if (Ids.SPIRIT_ANGLER.contains(it.getId()))
+				int id = it.getId();
+				harpoon |= Ids.HARPOONS.contains(id);
+				hammer |= Ids.HAMMERS.contains(id);
+				s.carriedHarpoon = Harpoon.best(s.carriedHarpoon, Harpoon.of(id), com.toadfx.temporossautopilot.model.PlayStyle.MAX_PERMITS);
+				for (int i = 0; i < 4; i++)
 				{
-					angler++;
+					if (id == GearMemory.SPIRIT_ANGLER[i])
+					{
+						s.wearsSpirit[i] = true;
+						angler++;
+					}
+					if (id == GearMemory.ANGLER[i])
+					{
+						s.wearsAngler[i] = true;
+					}
 				}
+			}
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			s.ownsSpirit[i] = gear.owns(GearMemory.SPIRIT_ANGLER[i]);
+			s.ownsAngler[i] = gear.owns(GearMemory.ANGLER[i]);
+		}
+		for (int id : gear.getOwned())
+		{
+			Harpoon h = Harpoon.of(id);
+			if (h != null)
+			{
+				s.ownedHarpoons.add(h);
 			}
 		}
 		s.freeSlots = 28 - used;
@@ -747,6 +775,11 @@ public class GameTracker
 	public List<GameObject> getSupplyCrates()
 	{
 		return new ArrayList<>(supplyCrates);
+	}
+
+	public int getRegion()
+	{
+		return region;
 	}
 
 	public int getLoadedThisRound()

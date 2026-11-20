@@ -1,5 +1,9 @@
 package com.toadfx.temporossautopilot.logic;
 
+import com.toadfx.temporossautopilot.model.Harpoon;
+import java.util.EnumSet;
+import java.util.Set;
+
 /** Everything the planner needs about the game right now. Plain fields so tests can build one. */
 public class Snapshot
 {
@@ -24,6 +28,16 @@ public class Snapshot
 	public boolean hasHammer;
 	public boolean hasHarpoon = true;
 	public int fishingLevel = 1;
+
+	// Gear you own (from the bank, inventory and worn items) vs what you have on you.
+	/** Best harpoon carried or worn, or null. */
+	public Harpoon carriedHarpoon;
+	public Set<Harpoon> ownedHarpoons = EnumSet.noneOf(Harpoon.class);
+	/** Per slot (hat, top, legs, boots): owned and worn pieces of each outfit. */
+	public boolean[] ownsSpirit = new boolean[4];
+	public boolean[] ownsAngler = new boolean[4];
+	public boolean[] wearsSpirit = new boolean[4];
+	public boolean[] wearsAngler = new boolean[4];
 
 	// Scene
 	public boolean waveIncoming;

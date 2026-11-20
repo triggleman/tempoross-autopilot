@@ -38,6 +38,10 @@ highlights and your post-game grade all follow it.
   makes Tempoross vulnerable too early.
 - **Pre-game check**: grabs a harpoon, rope, hammer and buckets, then fills the buckets.
   The full spirit angler's outfit counts as a rope.
+- **Gear reminders**: remembers the harpoons and angler / spirit angler pieces you own (from your
+  bank, inventory and worn items) and reminds you to bring them: your best harpoon for your play style
+  (infernal for points, crystal for Fishing XP, dragon for its +3 special) and the outfit
+  (the full set gives +2.5% Fishing XP). You also get one chat reminder when you reach the Ruins of Unkah.
 - **Alerts**: wave incoming (when you aren't tethered), double spot, storm warning, load target
   reached, new permit.
 - **Post-game report card**: S to D grade for your play style, a points breakdown (loading,
@@ -49,7 +53,7 @@ highlights and your post-game grade all follow it.
 
 | Section | Settings |
 |---|---|
-| Play style | Play style, points target, Custom cooking rule, barehanded fishing, buckets to carry |
+| Play style | Play style, points target, Custom cooking rule, barehanded fishing, gear reminders, buckets to carry |
 | Mass and solo | Mode (Mass / Solo / Duo), solo route, storm danger mark |
 | Overlays | Each box and highlight on or off |
 | Colours | Target, double spot, fire, urgent |

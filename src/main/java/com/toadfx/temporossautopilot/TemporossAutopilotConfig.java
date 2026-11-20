@@ -67,7 +67,14 @@ public interface TemporossAutopilotConfig extends Config
 		return false;
 	}
 
-	@ConfigItem(keyName = "bucketsWanted", name = "Buckets to carry", position = 4, section = styleSection,
+	@ConfigItem(keyName = "gearReminders", name = "Gear reminders", position = 4, section = styleSection,
+		description = "Remind you to bring your best harpoon and wear your angler or spirit angler outfit, if you own them")
+	default boolean gearReminders()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "bucketsWanted", name = "Buckets to carry", position = 5, section = styleSection,
 		description = "Buckets to take before the game (Firefighter always takes at least 4)")
 	@Range(min = 0, max = 10)
 	default int bucketsWanted()

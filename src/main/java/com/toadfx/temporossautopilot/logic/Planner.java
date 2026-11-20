@@ -2,7 +2,10 @@ package com.toadfx.temporossautopilot.logic;
 
 import com.toadfx.temporossautopilot.model.CookRule;
 import com.toadfx.temporossautopilot.model.GameMode;
+import com.toadfx.temporossautopilot.model.Harpoon;
 import com.toadfx.temporossautopilot.model.PlayStyle;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Picks the next step. Pure: everything comes in through the snapshot and settings,
@@ -65,6 +68,11 @@ public final class Planner
 	{
 		if (!s.hasHarpoon && !set.barehanded)
 		{
+			Harpoon own = bestOwnedHarpoon(s, set);
+			if (own != null && set.gearReminders)
+			{
+				return Instruction.of("Bring your " + own.getLabel(), "It's in your bank. Or take a harpoon from the crate.", Target.SUPPLY_CRATES);
+			}
 			return Instruction.of("Grab a harpoon", "Take one from the harpoon crate.", Target.SUPPLY_CRATES);
 		}
 		if (!s.hasRope)
@@ -81,7 +89,119 @@ public final class Planner
 		{
 			return Instruction.of("Grab buckets", "Take " + (wanted - have) + " more from the bucket crate.", Target.SUPPLY_CRATES);
 		}
+		if (set.gearReminders)
+		{
+			Instruction better = betterHarpoon(s, set);
+			if (better != null)
+			{
+				return better;
+			}
+			Instruction outfit = outfit(s);
+			if (outfit != null)
+			{
+				return outfit;
+			}
+		}
 		return null;
+	}
+
+	// --------------------------------------------------------------------- your own gear
+
+	/** The best harpoon you own for this style, or null if none is known. */
+	public static Harpoon bestOwnedHarpoon(Snapshot s, PlannerSettings set)
+	{
+		Harpoon best = null;
+		for (Harpoon h : s.ownedHarpoons)
+		{
+			best = Harpoon.best(best, h, set.style);
+		}
+		return best;
+	}
+
+	/** A reminder to bring a better harpoon you own, or null. */
+	static Instruction betterHarpoon(Snapshot s, PlannerSettings set)
+	{
+		Harpoon own = bestOwnedHarpoon(s, set);
+		if (own == null || set.barehanded)
+		{
+			return null;
+		}
+		if (s.carriedHarpoon != null && s.carriedHarpoon.rank(set.style) >= own.rank(set.style))
+		{
+			return null;
+		}
+		return Instruction.of("Bring your " + own.getLabel(), own.getWhy(), Target.NONE);
+	}
+
+	/** A reminder to wear the angler or spirit angler pieces you own, or null. */
+	static Instruction outfit(Snapshot s)
+	{
+		int missing = 0;
+		boolean spirit = false;
+		int owned = 0;
+		for (int i = 0; i < 4; i++)
+		{
+			boolean wantSpirit = s.ownsSpirit[i];
+			boolean wantAngler = !wantSpirit && s.ownsAngler[i];
+			if (wantSpirit || wantAngler)
+			{
+				owned++;
+			}
+			if (wantSpirit && !s.wearsSpirit[i])
+			{
+				missing++;
+				spirit = true;
+			}
+			else if (wantAngler && !s.wearsSpirit[i] && !s.wearsAngler[i])
+			{
+				missing++;
+			}
+		}
+		if (missing == 0)
+		{
+			return null;
+		}
+		String name = spirit ? "spirit angler outfit" : "angler outfit";
+		String detail = owned == 4 ? "The full set gives +2.5% Fishing XP." : "You own " + owned + " of 4 pieces. The full set gives +2.5% Fishing XP.";
+		if (spirit && countSpirit(s.ownsSpirit) == 4)
+		{
+			detail += " The full spirit set also works as a rope.";
+		}
+		return Instruction.of("Wear your " + name, detail, Target.NONE);
+	}
+
+	private static int countSpirit(boolean[] b)
+	{
+		int n = 0;
+		for (boolean x : b)
+		{
+			if (x)
+			{
+				n++;
+			}
+		}
+		return n;
+	}
+
+	/** Everything you own but didn't bring, for a one-line chat reminder. Empty when all set. */
+	public static List<String> gearReminders(Snapshot s, PlannerSettings set)
+	{
+		List<String> out = new ArrayList<>();
+		Instruction h = s.hasHarpoon ? betterHarpoon(s, set) : null;
+		if (!s.hasHarpoon && !set.barehanded && bestOwnedHarpoon(s, set) != null)
+		{
+			h = Instruction.of("Bring your " + bestOwnedHarpoon(s, set).getLabel(), "", Target.NONE);
+		}
+		if (h != null)
+		{
+			out.add(h.getTitle().replace("Bring your ", "your "));
+		}
+		Instruction o = outfit(s);
+		if (o != null)
+		{
+			out.add(o.getTitle().replace("Wear your ", "your "));
+		}
+		return out;
 	}
 
 	private static int bucketsWanted(PlannerSettings set)

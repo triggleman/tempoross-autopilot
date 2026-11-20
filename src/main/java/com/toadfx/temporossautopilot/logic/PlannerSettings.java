@@ -21,6 +21,8 @@ public class PlannerSettings
 	public boolean barehanded;
 	/** Buckets to carry before the game starts. */
 	public int bucketsWanted = 2;
+	/** Remind you to bring your best harpoon and wear your angler outfits. */
+	public boolean gearReminders = true;
 
 	public CookRule cookRule()
 	{

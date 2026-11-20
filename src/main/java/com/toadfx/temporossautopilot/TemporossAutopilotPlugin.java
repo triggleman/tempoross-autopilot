@@ -18,6 +18,8 @@ import com.toadfx.temporossautopilot.overlay.SceneOverlay;
 import com.toadfx.temporossautopilot.overlay.StepOverlay;
 import com.toadfx.temporossautopilot.overlay.StormOverlay;
 import com.toadfx.temporossautopilot.state.GameTracker;
+import com.toadfx.temporossautopilot.state.GearMemory;
+import com.toadfx.temporossautopilot.state.Ids;
 import com.toadfx.temporossautopilot.ui.TemporossAutopilotPanel;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -29,14 +31,18 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
+import net.runelite.api.Item;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
+import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -57,6 +63,7 @@ public class TemporossAutopilotPlugin extends Plugin
 {
 	private static final String KEY_HISTORY = "history";
 	private static final String KEY_BESTS = "bests";
+	private static final String KEY_GEAR = "ownedGear";
 	private static final int HISTORY_MAX = 50;
 
 	@Inject
@@ -90,6 +97,8 @@ public class TemporossAutopilotPlugin extends Plugin
 	private SceneOverlay sceneOverlay;
 
 	private GameTracker tracker;
+	private final GearMemory gear = new GearMemory();
+	private boolean inLobby;
 	private TemporossAutopilotPanel panel;
 	private NavigationButton navButton;
 
@@ -121,7 +130,7 @@ public class TemporossAutopilotPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		tracker = new GameTracker(client);
+		tracker = new GameTracker(client, gear);
 		tracker.setListeners(this::onGameEnd, this::onDoubleSpot, this::onWave);
 		overlayManager.add(stepOverlay);
 		overlayManager.add(permitOverlay);
@@ -174,6 +183,39 @@ public class TemporossAutopilotPlugin extends Plugin
 		{
 			loadHistory();
 		}
+	}
+
+	@Subscribe
+	public void onItemContainerChanged(ItemContainerChanged e)
+	{
+		int id = e.getContainerId();
+		if (id == InventoryID.INV || id == InventoryID.WORN)
+		{
+			gear.sawCarried(ids(client.getItemContainer(InventoryID.INV)), ids(client.getItemContainer(InventoryID.WORN)));
+		}
+		else if (id == InventoryID.BANK)
+		{
+			gear.sawBank(ids(e.getItemContainer()));
+		}
+		if (gear.takeChanged() && historyLoaded)
+		{
+			configManager.setRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_GEAR, gear.serialize());
+		}
+	}
+
+	private static int[] ids(ItemContainer c)
+	{
+		if (c == null)
+		{
+			return new int[0];
+		}
+		Item[] items = c.getItems();
+		int[] out = new int[items.length];
+		for (int i = 0; i < items.length; i++)
+		{
+			out[i] = items[i].getId();
+		}
+		return out;
 	}
 
 	@Subscribe
@@ -263,6 +305,7 @@ public class TemporossAutopilotPlugin extends Plugin
 
 		resolveTargets(step);
 		alerts(s);
+		lobbyReminder(s, settings);
 
 		snapshot = s;
 		instruction = step;
@@ -285,7 +328,28 @@ public class TemporossAutopilotPlugin extends Plugin
 		p.stormDanger = config.stormDanger();
 		p.barehanded = config.barehanded();
 		p.bucketsWanted = config.bucketsWanted();
+		p.gearReminders = config.gearReminders();
 		return p;
+	}
+
+	/** Once per visit to the Ruins of Unkah: a chat line naming gear you own but didn't bring. */
+	private void lobbyReminder(Snapshot s, PlannerSettings settings)
+	{
+		int region = tracker.getRegion();
+		boolean lobby = region == Ids.LOBBY_REGION || region == Ids.BOAT_REGION;
+		if (lobby && !inLobby && settings.gearReminders)
+		{
+			List<String> missing = Planner.gearReminders(s, settings);
+			if (!missing.isEmpty())
+			{
+				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+					"<col=4fc3cf>Tempoross Autopilot</col>: you didn't bring " + String.join(" or ", missing) + ".", null);
+			}
+		}
+		if (region != Ids.COVE_REGION)
+		{
+			inLobby = lobby;
+		}
 	}
 
 	/** Finds what the step points at, for the scene overlay. */
@@ -458,6 +522,8 @@ public class TemporossAutopilotPlugin extends Plugin
 			}
 		}
 		bests = PersonalBests.parse(configManager.getRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_BESTS));
+		gear.load(configManager.getRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_GEAR));
+		gear.sawCarried(ids(client.getItemContainer(InventoryID.INV)), ids(client.getItemContainer(InventoryID.WORN)));
 		if (!history.isEmpty())
 		{
 			lastGame = history.get(history.size() - 1);
