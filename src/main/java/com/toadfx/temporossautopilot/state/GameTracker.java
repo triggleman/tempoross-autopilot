@@ -50,8 +50,12 @@ public class GameTracker
 	private final Set<NPC> crates = new HashSet<>();
 	private final Set<NPC> fires = new HashSet<>();
 	private NPC doubleSpot;
-	private NPC spiritPool;
-	private NPC inactivePool;
+	/** There's a spirit pool on each side of the cove; we always point at the nearest one. */
+	private final Set<NPC> pools = new HashSet<>();
+	private final Set<NPC> inactivePools = new HashSet<>();
+	/** Ticks spent outside the cove; a game only ends after a few, so a loading blip doesn't split it. */
+	private int outsideTicks;
+	private static final int OUTSIDE_TICKS_TO_END = 5;
 	/** Timers: when each lightning cloud turns to fire, and when each fire next spreads (epoch ms). */
 	private final Map<GameObject, Long> clouds = new ConcurrentHashMap<>();
 	private final Map<GameObject, Long> fireSpread = new ConcurrentHashMap<>();
@@ -132,11 +136,11 @@ public class GameTracker
 		}
 		else if (id == Ids.SPIRIT_POOL)
 		{
-			spiritPool = npc;
+			pools.add(npc);
 		}
 		else if (id == Ids.SPIRIT_POOL_INACTIVE)
 		{
-			inactivePool = npc;
+			inactivePools.add(npc);
 		}
 		else if (Ids.AMMO_CRATES.contains(id))
 		{
@@ -161,14 +165,8 @@ public class GameTracker
 		{
 			doubleSpot = null;
 		}
-		if (npc == spiritPool)
-		{
-			spiritPool = null;
-		}
-		if (npc == inactivePool)
-		{
-			inactivePool = null;
-		}
+		pools.remove(npc);
+		inactivePools.remove(npc);
 	}
 
 	public void objectSpawned(GameObject obj)
@@ -226,8 +224,8 @@ public class GameTracker
 		crates.clear();
 		fires.clear();
 		doubleSpot = null;
-		spiritPool = null;
-		inactivePool = null;
+		pools.clear();
+		inactivePools.clear();
 		clouds.clear();
 		fireSpread.clear();
 		shrines.clear();
@@ -294,7 +292,10 @@ public class GameTracker
 		}
 		WorldPoint here = me.getWorldLocation();
 		region = WorldPoint.fromLocalInstance(client, me.getLocalLocation()).getRegionID();
-		boolean inCove = region == Ids.COVE_REGION;
+		boolean reallyInCove = region == Ids.COVE_REGION;
+		outsideTicks = reallyInCove ? 0 : outsideTicks + 1;
+		// While a game is on, only believe we've left once it's been a few ticks.
+		boolean inCove = reallyInCove || game != null && outsideTicks < OUTSIDE_TICKS_TO_END;
 		boolean onBoat = region == Ids.BOAT_REGION;
 
 		readHud(inCove);
@@ -302,7 +303,7 @@ public class GameTracker
 		readInventory(s);
 
 		Phase before = phase;
-		if (game != null && spiritPool != null && essence >= 0)
+		if (game != null && !pools.isEmpty() && essence >= 0)
 		{
 			lowestPoolEssence = Math.min(lowestPoolEssence, essence);
 		}
@@ -398,7 +399,7 @@ public class GameTracker
 			return game != null ? phase : Phase.WAITING;
 		}
 		// The pool stays open while Tempoross's energy recharges, so the pool decides the phase.
-		if (energy == 0 || spiritPool != null)
+		if (energy == 0 || !pools.isEmpty())
 		{
 			return Phase.ESSENCE;
 		}
@@ -682,8 +683,8 @@ public class GameTracker
 		s.waveIncoming = waveIncoming;
 		s.tethered = client.getVarbitValue(VarbitID.TEMPOROSS_TETHERED) > 0;
 		s.doubleSpot = doubleSpot != null;
-		s.spiritPool = spiritPool != null;
-		s.poolInactive = inactivePool != null;
+		s.spiritPool = !pools.isEmpty();
+		s.poolInactive = !inactivePools.isEmpty();
 		s.fireDistance = nearestDistance(fires, here);
 		s.damagedTetherDistance = nearestObjectDistance(damagedTethers, here);
 		int crate = nearestDistance(crates, here);
@@ -826,13 +827,13 @@ public class GameTracker
 
 	public NPC getSpiritPool()
 	{
-		return spiritPool;
+		return nearestNpc(pools);
 	}
 
 	/** The open spirit pool, or the closed one waiting to open. */
 	public NPC getAnySpiritPool()
 	{
-		return spiritPool != null ? spiritPool : inactivePool;
+		return !pools.isEmpty() ? nearestNpc(pools) : nearestNpc(inactivePools);
 	}
 
 	public Map<GameObject, Long> getClouds()

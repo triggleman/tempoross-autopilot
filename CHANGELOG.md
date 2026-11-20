@@ -9,6 +9,7 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
+- Points at the nearest spirit pool (there is one on each side); a short loading blip no longer splits or ends a game; games with 0 points are not recorded.
 - Path line to the next step's target (and on the minimap), ported from GOTR Coach.
 - Fixes from the first in-game test: spirit pool phase follows the open pool (energy recharges while it is open), wins detected from the essence bar, permit count or subdued message, catches and cooks counted from chat, only nearby double spots count, side panel text no longer cut off.
 - "Recommended mass" style (new default) is Theoatrix's mass run; Max permits / hr uses the wiki cooking method. Timers are yellow. Storm bar removed from the top box.

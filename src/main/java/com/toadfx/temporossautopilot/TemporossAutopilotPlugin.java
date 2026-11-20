@@ -517,7 +517,8 @@ public class TemporossAutopilotPlugin extends Plugin
 
 	private void onGameEnd(GameRecord r)
 	{
-		if (r.points <= 0 && r.seconds < 30)
+		// A game with no points is a false start (joined as it ended, or a loading blip): don't record it.
+		if (r.points <= 0)
 		{
 			return;
 		}
