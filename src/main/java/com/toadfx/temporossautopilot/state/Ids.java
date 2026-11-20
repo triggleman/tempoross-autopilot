@@ -108,6 +108,10 @@ public final class Ids
 	public static final String WAVE_HIT = "the wave slams into you";
 	public static final String VULNERABLE = "tempoross is vulnerable";
 	public static final String SCATTER = "the glowing fish scatter";
+	public static final String SUBDUED = "tempoross is subdued";
+	public static final String CATCH = "you catch a";
+	public static final String CATCH_EXTRA = "catch an extra harpoonfish";
+	public static final String COOKED = "you successfully cook a harpoonfish";
 
 	private static Set<Integer> set(int... ids)
 	{

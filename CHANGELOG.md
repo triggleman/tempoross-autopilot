@@ -9,6 +9,7 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
+- Fixes from the first in-game test: spirit pool phase follows the open pool (energy recharges while it is open), wins detected from the essence bar, permit count or subdued message, catches and cooks counted from chat, only nearby double spots count, side panel text no longer cut off.
 - "Recommended mass" style (new default) is Theoatrix's mass run; Max permits / hr uses the wiki cooking method. Timers are yellow. Storm bar removed from the top box.
 - Max points follows Theoatrix's opener (opener of 9, or 8 for max points, then a full bag). Imcando hammer reminder.
 - New default colours: next step #FF00F1, double spot #FF7300, urgent #FF1E1E.

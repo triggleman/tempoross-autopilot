@@ -72,6 +72,11 @@ public class GameTracker
 	private int loadedThisRound;
 	private boolean waveIncoming;
 	private boolean wonSeen;
+	/** Lowest essence seen while the spirit pool was open this game (0 = subdued). */
+	private int lowestPoolEssence = 100;
+	private int permitsAtStart = -1;
+	/** Catches and cooks from chat this tick (more reliable than inventory changes). */
+	private int chatCooks;
 
 	// Inventory last tick, for counting catches, cooks and loads.
 	private int lastRaw;
@@ -118,8 +123,9 @@ public class GameTracker
 		{
 			doubleSpot = npc;
 			doubleFished = false;
-			if (game != null && phase == Phase.ENERGY)
+			if (game != null && phase == Phase.ENERGY && nearMe(npc, 20))
 			{
+				// Only doubles on your side of the island count (mass worlds have them everywhere).
 				game.doubles++;
 				onDoubleSpot.run();
 			}
@@ -262,6 +268,19 @@ public class GameTracker
 		{
 			game.scatters++;
 		}
+		else if (msg.contains(Ids.SUBDUED))
+		{
+			wonSeen = true;
+		}
+		else if (game != null && (msg.startsWith(Ids.CATCH) || msg.contains(Ids.CATCH_EXTRA)))
+		{
+			game.fishCaught++;
+		}
+		else if (game != null && msg.startsWith(Ids.COOKED))
+		{
+			game.fishCooked++;
+			chatCooks++;
+		}
 	}
 
 	// ------------------------------------------------------------------ every tick
@@ -283,6 +302,10 @@ public class GameTracker
 		readInventory(s);
 
 		Phase before = phase;
+		if (game != null && spiritPool != null && essence >= 0)
+		{
+			lowestPoolEssence = Math.min(lowestPoolEssence, essence);
+		}
 		phase = nextPhase(inCove, onBoat);
 		if (phase == Phase.IDLE || phase == Phase.WAITING)
 		{
@@ -312,7 +335,7 @@ public class GameTracker
 			}
 			else if (!inCove)
 			{
-				endGame(false, 0);
+				endGame(wonByEvidence(), 0);
 			}
 		}
 
@@ -342,14 +365,31 @@ public class GameTracker
 		snapshot = s;
 	}
 
+	/**
+	 * Did we win, judging by what we saw? The essence bar hitting 0, the reward permit count going
+	 * up, or the victory hosts / subdued message all count.
+	 */
+	private boolean wonByEvidence()
+	{
+		if (wonSeen || lowestPoolEssence <= 0)
+		{
+			return true;
+		}
+		int permits = client.getVarbitValue(VarbitID.TEMPOROSS_REWARDPERMITS);
+		return permitsAtStart >= 0 && permits > permitsAtStart;
+	}
+
 	private Phase nextPhase(boolean inCove, boolean onBoat)
 	{
 		if (!inCove)
 		{
-			wonSeen = false;
+			if (game == null)
+			{
+				wonSeen = false;
+			}
 			return onBoat ? Phase.WAITING : Phase.IDLE;
 		}
-		if (wonSeen)
+		if (wonSeen || game != null && lowestPoolEssence <= 0)
 		{
 			return Phase.WON;
 		}
@@ -357,7 +397,8 @@ public class GameTracker
 		{
 			return game != null ? phase : Phase.WAITING;
 		}
-		if (energy == 0 || spiritPool != null && energy >= 0 && energy <= 2)
+		// The pool stays open while Tempoross's energy recharges, so the pool decides the phase.
+		if (energy == 0 || spiritPool != null)
 		{
 			return Phase.ESSENCE;
 		}
@@ -372,6 +413,9 @@ public class GameTracker
 		startCookingXp = client.getSkillExperience(Skill.COOKING);
 		round = 1;
 		loadedThisRound = 0;
+		lowestPoolEssence = 100;
+		wonSeen = false;
+		permitsAtStart = client.getVarbitValue(VarbitID.TEMPOROSS_REWARDPERMITS);
 		lastTile = null;
 		stillTicks = 0;
 		storm.reset();
@@ -390,6 +434,10 @@ public class GameTracker
 		r.leftoverFish = leftover;
 		r.rounds = round;
 		waveIncoming = false;
+		if (!wonSeen && won)
+		{
+			wonSeen = true;
+		}
 		onGameEnd.accept(r);
 	}
 
@@ -583,27 +631,11 @@ public class GameTracker
 			int dCrystal = s.crystal - lastCrystal;
 			boolean atCrate = nearestDistance(crates, here) <= CRATE_REACH;
 
-			if (dRaw < 0 && dCooked > 0 && !atCrate)
+			// Catches and shrine cooks come from chat. A cooked fish appearing with no raw fish
+			// used and no cook message is the infernal harpoon cooking it as it's caught.
+			if (dCooked > 0 && dRaw >= 0 && chatCooks == 0 && !atCrate)
 			{
-				// Cooking at the shrine.
-				game.fishCooked += Math.min(-dRaw, dCooked);
-			}
-			else
-			{
-				if (dRaw > 0)
-				{
-					game.fishCaught += dRaw;
-				}
-				if (dCooked > 0)
-				{
-					// Infernal harpoon: caught and cooked in one go.
-					game.fishCaught += dCooked;
-					game.fishCooked += dCooked;
-				}
-			}
-			if (dCrystal > 0)
-			{
-				game.fishCaught += dCrystal;
+				game.fishCooked += dCooked;
 			}
 			if (atCrate && !waveIncoming)
 			{
@@ -617,6 +649,7 @@ public class GameTracker
 		lastRaw = s.raw;
 		lastCooked = s.cooked;
 		lastCrystal = s.crystal;
+		chatCooks = 0;
 	}
 
 	private void trackDoubleAndIdle(Player me, WorldPoint here)
@@ -661,6 +694,16 @@ public class GameTracker
 	}
 
 	// ------------------------------------------------------------------ helpers
+
+	private boolean nearMe(NPC npc, int tiles)
+	{
+		Player me = client.getLocalPlayer();
+		if (me == null || npc.getWorldLocation() == null)
+		{
+			return false;
+		}
+		return npc.getWorldLocation().distanceTo(me.getWorldLocation()) <= tiles;
+	}
 
 	private static int nearestDistance(Set<NPC> npcs, WorldPoint here)
 	{

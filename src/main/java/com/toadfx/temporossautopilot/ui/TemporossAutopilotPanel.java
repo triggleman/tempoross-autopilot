@@ -339,7 +339,7 @@ public class TemporossAutopilotPanel extends PluginPanel
 
 	private static String html(String s)
 	{
-		return "<html><body style='width:170px'>" + s.replace("&", "&amp;").replace("<", "&lt;") + "</body></html>";
+		return "<html><body style='width:150px'>" + s.replace("&", "&amp;").replace("<", "&lt;") + "</body></html>";
 	}
 
 	private static JLabel small(String text)
