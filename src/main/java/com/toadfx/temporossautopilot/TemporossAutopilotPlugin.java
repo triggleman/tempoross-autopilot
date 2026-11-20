@@ -14,6 +14,7 @@ import com.toadfx.temporossautopilot.logic.PlannerSettings;
 import com.toadfx.temporossautopilot.logic.Snapshot;
 import com.toadfx.temporossautopilot.logic.Target;
 import com.toadfx.temporossautopilot.model.GameMode;
+import com.toadfx.temporossautopilot.model.PlayStyle;
 import com.toadfx.temporossautopilot.overlay.MinimapPathOverlay;
 import com.toadfx.temporossautopilot.overlay.PathOverlay;
 import com.toadfx.temporossautopilot.overlay.Pathfinder;
@@ -358,9 +359,9 @@ public class TemporossAutopilotPlugin extends Plugin
 	private PlannerSettings settings()
 	{
 		PlannerSettings p = new PlannerSettings();
-		p.style = config.playStyle();
 		p.mode = config.gameMode();
-		p.soloMethod = config.soloMethod();
+		p.style = PlayStyle.effective(config.playStyle(), p.mode);
+		p.soloMethod = p.style.getSoloMethod();
 		p.customCook = config.customCook();
 		p.pointsTarget = config.pointsTarget();
 		p.stormDanger = config.stormDanger();
@@ -574,7 +575,7 @@ public class TemporossAutopilotPlugin extends Plugin
 		{
 			return;
 		}
-		r.style = config.playStyle();
+		r.style = PlayStyle.effective(config.playStyle(), config.gameMode());
 		r.mode = config.gameMode();
 		Grader.grade(r, config.pointsTarget());
 		lastGame = r;

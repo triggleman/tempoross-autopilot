@@ -9,6 +9,7 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
+- Styles follow the mode: Solo shows the wiki solo styles (Recommended solo = 17/19/19/27), Duo and Mass show the team styles, recommended one first. The separate "Solo route" setting is gone.
 - The spirit pool is picked by walking distance (the straight-line nearest can be across the water), once per round.
 - "Keep cooking" while you are cooking (any style), so it no longer says to fish half way through a batch.
 - New play style "ToadFx mass route" (Todd's own route): opener of 8; in later rounds a fully cooked bag is loaded before 35%, then you wait at the spirit pool. Cooking no longer counts as loading near a crate.

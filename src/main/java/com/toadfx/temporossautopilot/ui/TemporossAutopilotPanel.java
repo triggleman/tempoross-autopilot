@@ -49,7 +49,7 @@ public class TemporossAutopilotPanel extends PluginPanel
 	private final TemporossAutopilotConfig config;
 	private final ConfigManager configManager;
 
-	private final JComboBox<PlayStyle> styleBox = new JComboBox<>(PlayStyle.values());
+	private final JComboBox<PlayStyle> styleBox = new JComboBox<>();
 	private final JComboBox<GameMode> modeBox = new JComboBox<>(GameMode.values());
 	private final JLabel styleNote = new JLabel();
 	private final JLabel stepTitle = new JLabel();
@@ -120,13 +120,28 @@ public class TemporossAutopilotPanel extends PluginPanel
 	private JPanel settingsCard(TemporossAutopilotConfig config)
 	{
 		JPanel p = card();
-		styleBox.setSelectedItem(config.playStyle());
 		modeBox.setSelectedItem(config.gameMode());
+		fillStyles(config.gameMode(), config.playStyle());
 		styleBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 		modeBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 		styleNote.setFont(FontManager.getRunescapeSmallFont());
 		styleNote.setForeground(MUTED);
 		styleNote.setAlignmentX(Component.LEFT_ALIGNMENT);
+		// Show "Recommended duo" in duo, and mark the recommended style.
+		styleBox.setRenderer(new javax.swing.DefaultListCellRenderer()
+		{
+			@Override
+			public Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index, boolean selected, boolean focus)
+			{
+				GameMode mode = (GameMode) modeBox.getSelectedItem();
+				String text = value instanceof PlayStyle && mode != null ? ((PlayStyle) value).labelFor(mode) : String.valueOf(value);
+				if (value instanceof PlayStyle && mode != null && value == PlayStyle.recommended(mode) && index >= 0)
+				{
+					text = text + "  \u2605";
+				}
+				return super.getListCellRendererComponent(list, text, index, selected, focus);
+			}
+		});
 
 		styleBox.addActionListener(e ->
 		{
@@ -138,29 +153,53 @@ public class TemporossAutopilotPanel extends PluginPanel
 		});
 		modeBox.addActionListener(e ->
 		{
-			if (!syncing && modeBox.getSelectedItem() != null)
+			GameMode mode = (GameMode) modeBox.getSelectedItem();
+			if (syncing || mode == null)
 			{
-				configManager.setConfiguration(TemporossAutopilotConfig.GROUP, "gameMode", modeBox.getSelectedItem());
+				return;
 			}
+			configManager.setConfiguration(TemporossAutopilotConfig.GROUP, "gameMode", mode);
+			// Only this mode's styles; keep the current one if it fits, else the recommended one.
+			PlayStyle current = (PlayStyle) styleBox.getSelectedItem();
+			PlayStyle next = PlayStyle.effective(current, mode);
+			fillStyles(mode, next);
+			configManager.setConfiguration(TemporossAutopilotConfig.GROUP, "playStyle", next);
 		});
 
-		p.add(small("Style"));
+		p.add(small("Mode"));
+		p.add(modeBox);
+		p.add(Box.createVerticalStrut(6));
+		p.add(small("Style (\u2605 = recommended)"));
 		p.add(styleBox);
 		p.add(Box.createVerticalStrut(2));
 		p.add(styleNote);
-		p.add(Box.createVerticalStrut(6));
-		p.add(small("Mode"));
-		p.add(modeBox);
 		updateStyleNote();
 		return p;
+	}
+
+	/** Puts only the mode's styles in the dropdown and selects one. */
+	private void fillStyles(GameMode mode, PlayStyle select)
+	{
+		boolean was = syncing;
+		syncing = true;
+		styleBox.removeAllItems();
+		for (PlayStyle st : PlayStyle.forMode(mode))
+		{
+			styleBox.addItem(st);
+		}
+		styleBox.setSelectedItem(PlayStyle.effective(select, mode));
+		syncing = was;
+		updateStyleNote();
 	}
 
 	private void updateStyleNote()
 	{
 		PlayStyle st = (PlayStyle) styleBox.getSelectedItem();
+		GameMode mode = (GameMode) modeBox.getSelectedItem();
 		if (st != null)
 		{
-			styleNote.setText(html(st.getTagline() + ". Graded on " + st.getGradedOn() + "."));
+			String rec = mode != null && st == PlayStyle.recommended(mode) ? "Recommended for " + mode.toString().toLowerCase() + ". " : "";
+			styleNote.setText(html(rec + st.getTagline() + ". Graded on " + st.getGradedOn() + "."));
 		}
 	}
 
@@ -168,10 +207,9 @@ public class TemporossAutopilotPanel extends PluginPanel
 	public void syncSettings(TemporossAutopilotConfig config)
 	{
 		syncing = true;
-		styleBox.setSelectedItem(config.playStyle());
 		modeBox.setSelectedItem(config.gameMode());
 		syncing = false;
-		updateStyleNote();
+		fillStyles(config.gameMode(), config.playStyle());
 	}
 
 	// ------------------------------------------------------------------ refresh

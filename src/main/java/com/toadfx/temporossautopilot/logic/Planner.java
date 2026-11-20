@@ -247,7 +247,12 @@ public final class Planner
 			case RECOMMENDED_MASS:
 				return "Catch 9 at the nearest spot and cook them, then fill up at a double spot.";
 			case MY_ROUTE:
-				return "Catch 7 and cook them, then fish the double spot until the wave.";
+				return "Catch 8 and cook them, then fish the double spot until the wave.";
+			case SOLO_RECOMMENDED:
+			case SOLO_FIREFIGHT:
+			case SOLO_FIVE_ROUNDS:
+			case SOLO_XP:
+				return "Solo-start from the rope ladder. Load exactly " + set.soloMethod.loadTarget(1) + " in round 1.";
 			case MAX_PERMITS:
 				return "Cook 7 at a time (9 at 85+ Fishing) and start loading at 49% energy.";
 			default:
@@ -264,7 +269,7 @@ public final class Planner
 		{
 			permits += " + " + Permits.bonusChance(s.points) + "% roll";
 		}
-		if (set.style == PlayStyle.MAX_PERMITS || set.style == PlayStyle.RECOMMENDED_MASS || set.style == PlayStyle.MY_ROUTE)
+		if (set.style != PlayStyle.CHILL && set.style != PlayStyle.CUSTOM && set.style != PlayStyle.MAX_POINTS && set.style != PlayStyle.FIREFIGHTER)
 		{
 			return Instruction.soon("Leave now", "Subdued! " + permits + ". Right-click Leave on the first mate for the next game.", Target.LEAVE);
 		}

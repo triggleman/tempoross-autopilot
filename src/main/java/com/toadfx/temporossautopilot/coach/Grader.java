@@ -103,6 +103,7 @@ public final class Grader
 		switch (r.style)
 		{
 			case MAX_XP:
+			case SOLO_XP:
 				if (r.fishCooked > 0)
 				{
 					int cost = Math.min(20, r.fishCooked);

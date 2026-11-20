@@ -3,7 +3,6 @@ package com.toadfx.temporossautopilot;
 import com.toadfx.temporossautopilot.model.CookRule;
 import com.toadfx.temporossautopilot.model.GameMode;
 import com.toadfx.temporossautopilot.model.PlayStyle;
-import com.toadfx.temporossautopilot.model.SoloMethod;
 import java.awt.Color;
 import net.runelite.client.config.Alpha;
 import net.runelite.client.config.Config;
@@ -63,7 +62,7 @@ public interface TemporossAutopilotConfig extends Config
 	// ------------------------------------------------------------------ play style
 
 	@ConfigItem(keyName = "playStyle", name = "Play style", position = 0, section = styleSection,
-		description = "Max permits per hour, max points per game, max Fishing XP, the wiki cooking method, firefighting, one easy permit, or your own rules")
+		description = "How you play. Styles depend on the mode: pick Solo for the wiki solo routes. A style that doesn't fit the mode is swapped for that mode's recommended one.")
 	default PlayStyle playStyle()
 	{
 		return PlayStyle.RECOMMENDED_MASS;
@@ -113,13 +112,6 @@ public interface TemporossAutopilotConfig extends Config
 	default GameMode gameMode()
 	{
 		return GameMode.MASS;
-	}
-
-	@ConfigItem(keyName = "soloMethod", name = "Solo route", position = 1, section = modeSection,
-		description = "Wiki solo route with exact load counts per round (solo mode only)")
-	default SoloMethod soloMethod()
-	{
-		return SoloMethod.STYLE;
 	}
 
 	@ConfigItem(keyName = "stormDanger", name = "Storm danger mark", position = 2, section = modeSection,
