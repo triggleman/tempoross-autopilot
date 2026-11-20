@@ -24,12 +24,14 @@ highlights and your post-game grade all follow it.
 
 ## Features
 
-- **Next step box**: tether, repair, load, cook or fish, with a reason and the points it's worth.
+- **Top instructions box**: at the top of the screen, what to do **now** (tether, repair, load, cook,
+  fish or head to the spirit pool) with the reason and the points it's worth, the game timer and round,
+  the storm bar, a **coming up** list (wave hits in, lightning fire lands in, next fire spread, storm
+  fills in, Tempoross energy, double spot open) and **then** the next two steps after this one.
 - **Points and permits box**: live points, permits earned, points to the next permit and your bonus roll.
   Permits come at 2,000 points, then every 700.
 - **Storm bar**: storm intensity with a danger mark (93% by default, the wiki's last safe trip from
   the shrine), how many seconds until it fills at the current rate, and wave warnings.
-- **Game timer** at the top of the screen with the round, switching to a wave countdown when a wave is coming.
 - **Lightning, fire and wave timers**: a countdown pie on each lightning cloud until the fire lands,
   on each fire until it spreads, and on every mast and totem pole until the wave hits (green once
   you're tethered, red on broken ones).

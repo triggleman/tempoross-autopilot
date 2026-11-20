@@ -6,6 +6,7 @@ import com.toadfx.temporossautopilot.coach.Grader;
 import com.toadfx.temporossautopilot.coach.PersonalBests;
 import com.toadfx.temporossautopilot.coach.Session;
 import com.toadfx.temporossautopilot.logic.Instruction;
+import com.toadfx.temporossautopilot.logic.Lookahead;
 import com.toadfx.temporossautopilot.logic.Permits;
 import com.toadfx.temporossautopilot.logic.Phase;
 import com.toadfx.temporossautopilot.logic.Planner;
@@ -16,7 +17,7 @@ import com.toadfx.temporossautopilot.model.GameMode;
 import com.toadfx.temporossautopilot.overlay.PermitOverlay;
 import com.toadfx.temporossautopilot.overlay.SceneOverlay;
 import com.toadfx.temporossautopilot.overlay.StepOverlay;
-import com.toadfx.temporossautopilot.overlay.StormOverlay;
+import com.toadfx.temporossautopilot.overlay.TopOverlay;
 import com.toadfx.temporossautopilot.state.GameTracker;
 import com.toadfx.temporossautopilot.state.GearMemory;
 import com.toadfx.temporossautopilot.state.Ids;
@@ -91,7 +92,7 @@ public class TemporossAutopilotPlugin extends Plugin
 	private PermitOverlay permitOverlay;
 
 	@Inject
-	private StormOverlay stormOverlay;
+	private TopOverlay topOverlay;
 
 	@Inject
 	private SceneOverlay sceneOverlay;
@@ -108,6 +109,7 @@ public class TemporossAutopilotPlugin extends Plugin
 	private volatile GameObject targetObject;
 	private volatile NPC targetCrate;
 	private volatile int loadTarget = -1;
+	private volatile List<Instruction> upcoming = Collections.emptyList();
 
 	private final Session session = new Session();
 	private final List<GameRecord> history = Collections.synchronizedList(new ArrayList<>());
@@ -134,7 +136,7 @@ public class TemporossAutopilotPlugin extends Plugin
 		tracker.setListeners(this::onGameEnd, this::onDoubleSpot, this::onWave);
 		overlayManager.add(stepOverlay);
 		overlayManager.add(permitOverlay);
-		overlayManager.add(stormOverlay);
+		overlayManager.add(topOverlay);
 		overlayManager.add(sceneOverlay);
 
 		BufferedImage logo = ImageUtil.loadImageResource(TemporossAutopilotPlugin.class, "panel_logo.png");
@@ -155,7 +157,7 @@ public class TemporossAutopilotPlugin extends Plugin
 	{
 		overlayManager.remove(stepOverlay);
 		overlayManager.remove(permitOverlay);
-		overlayManager.remove(stormOverlay);
+		overlayManager.remove(topOverlay);
 		overlayManager.remove(sceneOverlay);
 		clientToolbar.removeNavigation(navButton);
 		tracker = null;
@@ -309,6 +311,7 @@ public class TemporossAutopilotPlugin extends Plugin
 
 		snapshot = s;
 		instruction = step;
+		upcoming = Lookahead.next(s, settings, 2);
 
 		// The panel only needs a few updates a second.
 		if (panel != null && (++panelTick % 2 == 0 || s.phase != Phase.IDLE))
@@ -564,6 +567,11 @@ public class TemporossAutopilotPlugin extends Plugin
 	public NPC getTargetCrate()
 	{
 		return targetCrate;
+	}
+
+	public List<Instruction> getUpcoming()
+	{
+		return upcoming;
 	}
 
 	public int getLoadTarget()

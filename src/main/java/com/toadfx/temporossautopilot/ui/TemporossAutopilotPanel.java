@@ -189,7 +189,12 @@ public class TemporossAutopilotPanel extends PluginPanel
 		{
 			stepTitle.setText(step.getTitle());
 			stepTitle.setForeground(step.getUrgency() == Urgency.NOW ? NOW : step.getUrgency() == Urgency.SOON ? GOLD : ACCENT);
-			stepDetail.setText(html(step.getDetail()));
+			String then = "";
+			for (Instruction next : plugin.getUpcoming())
+			{
+				then += (then.isEmpty() ? "Then: " : " > ") + next.getTitle();
+			}
+			stepDetail.setText(html(step.getDetail() + (then.isEmpty() ? "" : "\n" + then)).replace("\n", "<br>"));
 		}
 
 		gameRows.removeAll();

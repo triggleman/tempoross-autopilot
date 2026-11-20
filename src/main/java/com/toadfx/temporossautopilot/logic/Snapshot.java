@@ -61,6 +61,26 @@ public class Snapshot
 	/** Seconds to walk to the crate from here, or -1 if unknown. */
 	public int secondsToCrate = -1;
 
+	/** A copy for looking ahead (arrays and sets copied too). */
+	public Snapshot copy()
+	{
+		Snapshot c = new Snapshot();
+		c.phase = phase; c.energy = energy; c.essence = essence; c.storm = storm; c.points = points; c.round = round;
+		c.raw = raw; c.cooked = cooked; c.crystal = crystal; c.freeSlots = freeSlots;
+		c.emptyBuckets = emptyBuckets; c.waterBuckets = waterBuckets;
+		c.hasRope = hasRope; c.hasHammer = hasHammer; c.hasHarpoon = hasHarpoon; c.fishingLevel = fishingLevel;
+		c.carriedHarpoon = carriedHarpoon;
+		c.ownedHarpoons = ownedHarpoons.isEmpty() ? EnumSet.noneOf(Harpoon.class) : EnumSet.copyOf(ownedHarpoons);
+		c.ownsSpirit = ownsSpirit.clone(); c.ownsAngler = ownsAngler.clone();
+		c.wearsSpirit = wearsSpirit.clone(); c.wearsAngler = wearsAngler.clone();
+		c.waveIncoming = waveIncoming; c.tethered = tethered; c.doubleSpot = doubleSpot;
+		c.spiritPool = spiritPool; c.poolInactive = poolInactive;
+		c.fireDistance = fireDistance; c.damagedTetherDistance = damagedTetherDistance;
+		c.nearCrate = nearCrate; c.cooking = cooking; c.loadedThisRound = loadedThisRound;
+		c.stormSecondsLeft = stormSecondsLeft; c.secondsToCrate = secondsToCrate;
+		return c;
+	}
+
 	public int fish()
 	{
 		return raw + cooked + crystal;

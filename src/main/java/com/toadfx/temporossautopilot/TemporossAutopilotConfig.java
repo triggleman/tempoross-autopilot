@@ -109,11 +109,25 @@ public interface TemporossAutopilotConfig extends Config
 
 	// ------------------------------------------------------------------ overlays
 
-	@ConfigItem(keyName = "showStep", name = "Next step box", position = 0, section = overlaySection,
-		description = "The box with the next thing to do")
-	default boolean showStep()
+	@ConfigItem(keyName = "showTopBox", name = "Top instructions box", position = 0, section = overlaySection,
+		description = "Box at the top of the screen: what to do now, the game timer, the storm, what's coming up and the next steps")
+	default boolean showTopBox()
 	{
 		return true;
+	}
+
+	@ConfigItem(keyName = "showUpcoming", name = "Top box: coming up", position = 1, section = overlaySection,
+		description = "Show wave, fire and storm timers and the next steps in the top box")
+	default boolean showUpcoming()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showStep", name = "Small step box (top left)", position = 12, section = overlaySection,
+		description = "An extra small box with the next step and your fish count, if you'd rather have it at the side")
+	default boolean showStep()
+	{
+		return false;
 	}
 
 	@ConfigItem(keyName = "showPermits", name = "Points and permits box", position = 1, section = overlaySection,
@@ -123,8 +137,8 @@ public interface TemporossAutopilotConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(keyName = "showStorm", name = "Storm and wave bar", position = 2, section = overlaySection,
-		description = "Storm intensity with the danger mark, time left and wave warnings")
+	@ConfigItem(keyName = "showStorm", name = "Storm bar", position = 2, section = overlaySection,
+		description = "Storm intensity with the danger mark, in the top box")
 	default boolean showStorm()
 	{
 		return true;
@@ -166,7 +180,7 @@ public interface TemporossAutopilotConfig extends Config
 	}
 
 	@ConfigItem(keyName = "showGameTimer", name = "Game timer", position = 9, section = overlaySection,
-		description = "Game time and round at the top of the screen")
+		description = "Game time and round in the top box")
 	default boolean showGameTimer()
 	{
 		return true;
