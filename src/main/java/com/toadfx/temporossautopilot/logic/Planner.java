@@ -293,6 +293,10 @@ public final class Planner
 		{
 			return Instruction.of("You're safe", "2,000 points reached. Fish the spirit pool if you like.", Target.SPIRIT_POOL);
 		}
+		if (!s.spiritPool)
+		{
+			return Instruction.soon("Head to the spirit pool", "Energy is 0. Be there when it opens: +55 points a scatter.", Target.SPIRIT_POOL);
+		}
 		return Instruction.of("Attack the spirit pool", "+55 points a scatter until Tempoross is subdued.", Target.SPIRIT_POOL);
 	}
 
@@ -352,6 +356,12 @@ public final class Planner
 		{
 			int count = remaining > 0 ? Math.min(loadable, remaining) : loadable;
 			return Instruction.of("Load the cannon", loadLine(s, cook, count, remaining), Target.CRATE);
+		}
+
+		// Energy almost gone and nothing to load: get in place for the spirit pool.
+		if (s.energy >= 0 && s.energy <= 3 && loadable == 0 && set.style != PlayStyle.CHILL)
+		{
+			return Instruction.soon("Head to the spirit pool", "Tempoross is about to go down. Be first at the pool.", Target.SPIRIT_POOL);
 		}
 
 		// Cook a batch while there's no double spot to fish.

@@ -8,6 +8,8 @@ import com.toadfx.temporossautopilot.model.Harpoon;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -49,6 +51,11 @@ public class GameTracker
 	private final Set<NPC> fires = new HashSet<>();
 	private NPC doubleSpot;
 	private NPC spiritPool;
+	private NPC inactivePool;
+	/** Timers: when each lightning cloud turns to fire, and when each fire next spreads (epoch ms). */
+	private final Map<GameObject, Long> clouds = new ConcurrentHashMap<>();
+	private final Map<GameObject, Long> fireSpread = new ConcurrentHashMap<>();
+	private volatile long waveHitsAt;
 	private final Set<GameObject> shrines = new HashSet<>();
 	private final Set<GameObject> tethers = new HashSet<>();
 	private final Set<GameObject> damagedTethers = new HashSet<>();
@@ -121,6 +128,10 @@ public class GameTracker
 		{
 			spiritPool = npc;
 		}
+		else if (id == Ids.SPIRIT_POOL_INACTIVE)
+		{
+			inactivePool = npc;
+		}
 		else if (Ids.AMMO_CRATES.contains(id))
 		{
 			crates.add(npc);
@@ -148,6 +159,10 @@ public class GameTracker
 		{
 			spiritPool = null;
 		}
+		if (npc == inactivePool)
+		{
+			inactivePool = null;
+		}
 	}
 
 	public void objectSpawned(GameObject obj)
@@ -173,6 +188,18 @@ public class GameTracker
 		{
 			supplyCrates.add(obj);
 		}
+		else if (id == Ids.CLOUD)
+		{
+			clouds.put(obj, System.currentTimeMillis() + Ids.CLOUD_MS);
+		}
+		else if (id == Ids.CLOUD_SHORT)
+		{
+			clouds.put(obj, System.currentTimeMillis() + Ids.CLOUD_SHORT_MS);
+		}
+		else if (id == Ids.FIRE_VISUAL)
+		{
+			fireSpread.put(obj, System.currentTimeMillis() + Ids.FIRE_SPREAD_MS);
+		}
 	}
 
 	public void objectDespawned(GameObject obj)
@@ -182,6 +209,8 @@ public class GameTracker
 		damagedTethers.remove(obj);
 		pumps.remove(obj);
 		supplyCrates.remove(obj);
+		clouds.remove(obj);
+		fireSpread.remove(obj);
 	}
 
 	/** Scene is reloading: every object and NPC will spawn again. */
@@ -192,6 +221,9 @@ public class GameTracker
 		fires.clear();
 		doubleSpot = null;
 		spiritPool = null;
+		inactivePool = null;
+		clouds.clear();
+		fireSpread.clear();
 		shrines.clear();
 		tethers.clear();
 		damagedTethers.clear();
@@ -205,11 +237,13 @@ public class GameTracker
 		if (msg.contains(Ids.WAVE_INCOMING))
 		{
 			waveIncoming = true;
+			waveHitsAt = System.currentTimeMillis() + Ids.WAVE_MS;
 			onWave.run();
 		}
 		else if (msg.contains(Ids.WAVE_SAFE))
 		{
 			waveIncoming = false;
+			waveHitsAt = 0;
 			if (game != null)
 			{
 				game.wavesSafe++;
@@ -218,6 +252,7 @@ public class GameTracker
 		else if (msg.contains(Ids.WAVE_HIT))
 		{
 			waveIncoming = false;
+			waveHitsAt = 0;
 			if (game != null)
 			{
 				game.wavesHit++;
@@ -252,6 +287,16 @@ public class GameTracker
 		if (phase == Phase.IDLE || phase == Phase.WAITING)
 		{
 			waveIncoming = false;
+			waveHitsAt = 0;
+		}
+		// Fires keep spreading: roll each timer on to the next spread.
+		long now = System.currentTimeMillis();
+		for (Map.Entry<GameObject, Long> e : fireSpread.entrySet())
+		{
+			if (e.getValue() < now)
+			{
+				e.setValue(e.getValue() + Ids.FIRE_SPREAD_MS * ((now - e.getValue()) / Ids.FIRE_SPREAD_MS + 1));
+			}
 		}
 
 		// Start and end of games.
@@ -602,6 +647,7 @@ public class GameTracker
 		s.tethered = client.getVarbitValue(VarbitID.TEMPOROSS_TETHERED) > 0;
 		s.doubleSpot = doubleSpot != null;
 		s.spiritPool = spiritPool != null;
+		s.poolInactive = inactivePool != null;
 		s.fireDistance = nearestDistance(fires, here);
 		s.damagedTetherDistance = nearestObjectDistance(damagedTethers, here);
 		int crate = nearestDistance(crates, here);
@@ -735,6 +781,39 @@ public class GameTracker
 	public NPC getSpiritPool()
 	{
 		return spiritPool;
+	}
+
+	/** The open spirit pool, or the closed one waiting to open. */
+	public NPC getAnySpiritPool()
+	{
+		return spiritPool != null ? spiritPool : inactivePool;
+	}
+
+	public Map<GameObject, Long> getClouds()
+	{
+		return clouds;
+	}
+
+	public Map<GameObject, Long> getFireSpread()
+	{
+		return fireSpread;
+	}
+
+	/** When the current wave hits (epoch ms), or 0 if there's no wave coming. */
+	public long getWaveHitsAt()
+	{
+		return waveHitsAt;
+	}
+
+	/** When the current game started (epoch ms), or 0 if there's no game. */
+	public long getGameStartMillis()
+	{
+		return game != null ? gameStartMillis : 0;
+	}
+
+	public int getRound()
+	{
+		return round;
 	}
 
 	public Set<NPC> getSpots()

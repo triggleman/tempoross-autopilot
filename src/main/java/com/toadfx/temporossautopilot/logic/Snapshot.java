@@ -43,7 +43,10 @@ public class Snapshot
 	public boolean waveIncoming;
 	public boolean tethered;
 	public boolean doubleSpot;
+	/** The spirit pool is open. */
 	public boolean spiritPool;
+	/** The spirit pool is there but not open yet. */
+	public boolean poolInactive;
 	/** Tiles to the closest fire, or -1 if none. */
 	public int fireDistance = -1;
 	/** Tiles to the closest broken mast or totem, or -1 if none. */

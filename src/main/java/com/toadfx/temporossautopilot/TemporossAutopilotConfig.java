@@ -165,6 +165,27 @@ public interface TemporossAutopilotConfig extends Config
 		return true;
 	}
 
+	@ConfigItem(keyName = "showGameTimer", name = "Game timer", position = 9, section = overlaySection,
+		description = "Game time and round at the top of the screen")
+	default boolean showGameTimer()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showFireTimers", name = "Lightning and fire timers", position = 10, section = overlaySection,
+		description = "Countdown on lightning clouds until the fire lands, and on fires until they spread")
+	default boolean showFireTimers()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showWaveTimers", name = "Wave timers on masts", position = 11, section = overlaySection,
+		description = "Countdown on masts and totem poles until the wave hits (green once you're tethered)")
+	default boolean showWaveTimers()
+	{
+		return true;
+	}
+
 	@ConfigItem(keyName = "highlightBroken", name = "Highlight broken masts", position = 8, section = overlaySection,
 		description = "Outline broken masts and totems")
 	default boolean highlightBroken()
@@ -185,7 +206,7 @@ public interface TemporossAutopilotConfig extends Config
 	@ConfigItem(keyName = "doubleColor", name = "Double spot", position = 1, section = colourSection, description = "Double spot outline")
 	default Color doubleColor()
 	{
-		return new Color(240, 180, 76);
+		return new Color(255, 105, 180);
 	}
 
 	@Alpha

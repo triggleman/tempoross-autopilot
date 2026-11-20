@@ -46,7 +46,10 @@ public class StormOverlay extends Overlay
 	public Dimension render(Graphics2D g)
 	{
 		Snapshot s = plugin.getSnapshot();
-		if (!config.showStorm() || s.phase != Phase.ENERGY || s.storm < 0)
+		boolean timerOn = config.showGameTimer() && s.inGame() && plugin.getTracker() != null
+			&& plugin.getTracker().getGameStartMillis() > 0;
+		boolean stormOn = config.showStorm() && s.phase == Phase.ENERGY && s.storm >= 0;
+		if (!timerOn && !stormOn)
 		{
 			return null;
 		}
@@ -54,12 +57,35 @@ public class StormOverlay extends Overlay
 		g.setFont(FontManager.getRunescapeSmallFont());
 		FontMetrics fm = g.getFontMetrics();
 		int line = fm.getHeight();
-		int height = PAD + line + 4 + 8 + 4 + line + PAD;
+		int top = timerOn ? line + 4 : 0;
+		int height = PAD + top + (stormOn ? line + 4 + 8 + 4 + line : 0) + PAD - (stormOn ? 0 : 4);
 
 		g.setColor(BG);
 		g.fillRoundRect(0, 0, WIDTH, height, 8, 8);
 
-		int y = PAD + fm.getAscent();
+		if (timerOn)
+		{
+			long ms = System.currentTimeMillis() - plugin.getTracker().getGameStartMillis();
+			int secs = (int) (ms / 1000);
+			String clock = secs / 60 + ":" + String.format("%02d", secs % 60);
+			String phase = s.phase == Phase.ESSENCE ? "Spirit pool" : "Round " + s.round;
+			long waveAt = plugin.getTracker().getWaveHitsAt();
+			if (waveAt > System.currentTimeMillis())
+			{
+				phase = String.format("Wave hits in %.1fs", (waveAt - System.currentTimeMillis()) / 1000.0);
+			}
+			int ty = PAD + fm.getAscent();
+			g.setColor(Color.WHITE);
+			g.drawString(clock, PAD, ty);
+			g.setColor(waveAt > System.currentTimeMillis() ? (s.tethered ? new Color(122, 212, 138) : config.urgentColor()) : MUTED);
+			g.drawString(phase, WIDTH - PAD - fm.stringWidth(phase), ty);
+		}
+		if (!stormOn)
+		{
+			return new Dimension(WIDTH, height);
+		}
+
+		int y = PAD + top + fm.getAscent();
 		boolean danger = s.storm >= config.stormDanger();
 		g.setColor(MUTED);
 		g.drawString("Storm intensity", PAD, y);
@@ -67,7 +93,7 @@ public class StormOverlay extends Overlay
 		g.setColor(danger ? config.urgentColor() : STORM);
 		g.drawString(pct, WIDTH - PAD - fm.stringWidth(pct), y);
 
-		int barY = PAD + line + 4;
+		int barY = PAD + top + line + 4;
 		int barW = WIDTH - PAD * 2;
 		g.setColor(TRACK);
 		g.fillRoundRect(PAD, barY, barW, 8, 4, 4);

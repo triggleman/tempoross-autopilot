@@ -183,7 +183,34 @@ public class PlannerTest
 		Snapshot s = energy();
 		s.phase = Phase.ESSENCE;
 		s.energy = 0;
+		s.spiritPool = true;
 		assertEquals(Target.SPIRIT_POOL, Planner.plan(s, style(PlayStyle.MAX_POINTS)).getTarget());
+	}
+
+	@Test
+	public void energyZeroHeadsToSpiritPool()
+	{
+		Snapshot s = energy();
+		s.phase = Phase.ESSENCE;
+		s.energy = 0;
+		s.spiritPool = false;
+		s.poolInactive = true;
+		Instruction i = Planner.plan(s, style(PlayStyle.MAX_PERMITS));
+		assertEquals("Head to the spirit pool", i.getTitle());
+		assertEquals(Target.SPIRIT_POOL, i.getTarget());
+		s.spiritPool = true;
+		assertEquals("Attack the spirit pool", Planner.plan(s, style(PlayStyle.MAX_PERMITS)).getTitle());
+	}
+
+	@Test
+	public void almostZeroEnergyWithNothingToLoadHeadsToPool()
+	{
+		Snapshot s = energy();
+		s.energy = 2;
+		assertEquals("Head to the spirit pool", Planner.plan(s, style(PlayStyle.MAX_POINTS)).getTitle());
+		s.cooked = 5;
+		s.freeSlots = 23;
+		assertEquals("Load what you have first", Target.CRATE, Planner.plan(s, style(PlayStyle.MAX_POINTS)).getTarget());
 	}
 
 	@Test

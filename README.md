@@ -29,9 +29,15 @@ highlights and your post-game grade all follow it.
   Permits come at 2,000 points, then every 700.
 - **Storm bar**: storm intensity with a danger mark (93% by default, the wiki's last safe trip from
   the shrine), how many seconds until it fills at the current rate, and wave warnings.
+- **Game timer** at the top of the screen with the round, switching to a wave countdown when a wave is coming.
+- **Lightning, fire and wave timers**: a countdown pie on each lightning cloud until the fire lands,
+  on each fire until it spreads, and on every mast and totem pole until the wave hits (green once
+  you're tethered, red on broken ones).
+- **Spirit pool**: as soon as energy hits 0 (or is almost gone and you have nothing to load), you're
+  sent to the spirit pool, highlighted even before it opens.
 - **Storm race**: if you're holding fish and the storm will fill before you can reach the crate,
   Autopilot tells you to load now.
-- **Highlights**: the next target with a label, double spots, fires, broken masts and totems, and a
+- **Highlights**: the next target with a label, double spots (pink by default), fires, broken masts and totems, and a
   load counter over the crate.
 - **Solo routes** from the OSRS Wiki with exact load counts per round: 17 / 19 / 19 / 27,
   5 rounds, and cooking + firefighting. Autopilot stops you at the number, because loading more
@@ -55,7 +61,7 @@ highlights and your post-game grade all follow it.
 |---|---|
 | Play style | Play style, points target, Custom cooking rule, barehanded fishing, gear reminders, buckets to carry |
 | Mass and solo | Mode (Mass / Solo / Duo), solo route, storm danger mark |
-| Overlays | Each box and highlight on or off |
+| Overlays | Each box, highlight and timer on or off |
 | Colours | Target, double spot, fire, urgent |
 | Alerts | Each alert on or off, storm warning level |
 | Report card | Chat summary, save history, reset history |

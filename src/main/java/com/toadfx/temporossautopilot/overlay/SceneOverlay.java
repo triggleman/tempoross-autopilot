@@ -14,10 +14,13 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.Arc2D;
+import java.util.Map;
 import javax.inject.Inject;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.Point;
+import com.toadfx.temporossautopilot.state.Ids;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -28,6 +31,9 @@ public class SceneOverlay extends Overlay
 {
 	private static final Stroke THIN = new BasicStroke(1.5f);
 	private static final Stroke THICK = new BasicStroke(2.5f);
+	private static final Color SAFE = new Color(122, 212, 138);
+	private static final Color WAVE = new Color(79, 195, 207);
+	private static final int PIE = 22;
 
 	private final TemporossAutopilotPlugin plugin;
 	private final TemporossAutopilotConfig config;
@@ -68,6 +74,44 @@ public class SceneOverlay extends Overlay
 				outlineObject(g, o, config.fireColor(), THIN);
 			}
 		}
+		long now = System.currentTimeMillis();
+		if (config.showFireTimers() && s.inGame())
+		{
+			for (Map.Entry<GameObject, Long> e : tracker.getClouds().entrySet())
+			{
+				long left = e.getValue() - now;
+				if (left > 0)
+				{
+					int total = e.getKey().getId() == Ids.CLOUD_SHORT ? Ids.CLOUD_SHORT_MS : Ids.CLOUD_MS;
+					outlineTile(g, e.getKey().getCanvasTilePoly(), config.fireColor(), THIN);
+					timer(g, e.getKey().getCanvasTextLocation(g, "0.0", 0), left, total, config.fireColor(), "Fire");
+				}
+			}
+			for (Map.Entry<GameObject, Long> e : tracker.getFireSpread().entrySet())
+			{
+				long left = e.getValue() - now;
+				if (left > 0)
+				{
+					timer(g, e.getKey().getCanvasTextLocation(g, "0.0", 0), left, Ids.FIRE_SPREAD_MS, config.fireColor(), "Spreads");
+				}
+			}
+		}
+		long waveAt = tracker.getWaveHitsAt();
+		if (config.showWaveTimers() && waveAt > now && s.inGame())
+		{
+			long left = waveAt - now;
+			Color c = s.tethered ? SAFE : WAVE;
+			for (GameObject t : tracker.getTethers())
+			{
+				outlineObject(g, t, c, THIN);
+				timer(g, t.getCanvasTextLocation(g, "0.0", 160), left, Ids.WAVE_MS, c, s.tethered ? "Tethered" : "Tether");
+			}
+			for (GameObject t : tracker.getDamagedTethers())
+			{
+				timer(g, t.getCanvasTextLocation(g, "0.0", 160), left, Ids.WAVE_MS, config.fireColor(), "Broken");
+			}
+		}
+
 		NPC dbl = tracker.getDoubleSpot();
 		if (config.highlightDouble() && dbl != null && s.inGame())
 		{
@@ -163,6 +207,29 @@ public class SceneOverlay extends Overlay
 		{
 			OverlayUtil.renderPolygon(g, poly, color, stroke);
 		}
+	}
+
+	/** A shrinking pie with the seconds left in it, and a word under it. */
+	private static void timer(Graphics2D g, Point at, long msLeft, int msTotal, Color color, String word)
+	{
+		if (at == null)
+		{
+			return;
+		}
+		int x = at.getX();
+		int y = at.getY() - PIE;
+		double frac = Math.max(0, Math.min(1, msLeft / (double) msTotal));
+		g.setColor(new Color(0, 0, 0, 150));
+		g.fillOval(x - PIE / 2, y - PIE / 2, PIE, PIE);
+		g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 170));
+		g.fill(new Arc2D.Double(x - PIE / 2.0, y - PIE / 2.0, PIE, PIE, 90, 360 * frac, Arc2D.PIE));
+		g.setColor(color);
+		g.drawOval(x - PIE / 2, y - PIE / 2, PIE, PIE);
+		String secs = String.format("%.1f", msLeft / 1000.0);
+		int w = g.getFontMetrics().stringWidth(secs);
+		OverlayUtil.renderTextLocation(g, new Point(x - w / 2, y + 4), secs, Color.WHITE);
+		int ww = g.getFontMetrics().stringWidth(word);
+		OverlayUtil.renderTextLocation(g, new Point(x - ww / 2, y + PIE / 2 + 12), word, color);
 	}
 
 	private static void label(Graphics2D g, Point at, String text, Color color)

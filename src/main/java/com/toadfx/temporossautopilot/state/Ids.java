@@ -23,6 +23,8 @@ public final class Ids
 	// NPCs
 	public static final int DOUBLE_SPOT = NpcID.TEMPOROSS_HARPOONFISH_FISHINGSPOT_SPECIAL;
 	public static final int SPIRIT_POOL = NpcID.TEMPOROSS_P2_FISHINGSPOT;
+	/** The spirit pool before it opens. */
+	public static final int SPIRIT_POOL_INACTIVE = NpcID.TEMPOROSS_P2_FISHINGSPOT_INACTIVE;
 	public static final Set<Integer> FISHING_SPOTS = set(
 		NpcID.TEMPOROSS_HARPOONFISH_FISHINGSPOT_NORTH,
 		NpcID.TEMPOROSS_HARPOONFISH_FISHINGSPOT_SOUTH,
@@ -59,6 +61,21 @@ public final class Ids
 		ObjectID.TEMPOROSS_CRATE_ROPE,
 		ObjectID.TEMPOROSS_CRATE_BUCKET,
 		ObjectID.TEMPOROSS_CRATE_HARPOON);
+
+	/** Lightning cloud shadow: a fire lands here. Short = a fire about to jump to this tile. */
+	public static final int CLOUD = ObjectID.TEMPOROSS_LIGHTNING_SHADOW;
+	public static final int CLOUD_SHORT = ObjectID.TEMPOROSS_LIGHTNING_SHADOW_SHORT;
+	public static final int FIRE_VISUAL = ObjectID.TEMPOROSS_FIRE_VISUALS;
+
+	// Timings (milliseconds), as observed in game.
+	/** Cloud shadow to fire. */
+	public static final int CLOUD_MS = 9600;
+	/** Short shadow (spreading fire) to fire. */
+	public static final int CLOUD_SHORT_MS = 1200;
+	/** A fire spreads to a new tile this long after it starts. */
+	public static final int FIRE_SPREAD_MS = 24000;
+	/** "A colossal wave closes in" to the wave hitting. */
+	public static final int WAVE_MS = 7800;
 
 	// Items
 	public static final int RAW_FISH = ItemID.TEMPOROSS_RAW_HARPOONFISH;

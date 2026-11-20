@@ -370,7 +370,7 @@ public class TemporossAutopilotPlugin extends Plugin
 				npc = tracker.nearestNpc(tracker.getCrates());
 				break;
 			case SPIRIT_POOL:
-				npc = tracker.getSpiritPool();
+				npc = tracker.getAnySpiritPool();
 				break;
 			case FIRE:
 				npc = tracker.nearestNpc(tracker.getFires());
