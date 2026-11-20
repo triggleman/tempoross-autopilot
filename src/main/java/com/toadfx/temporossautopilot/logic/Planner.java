@@ -369,6 +369,10 @@ public final class Planner
 			{
 				return Instruction.of("Load the cannon", "Load until your bag is empty or Tempoross hits 0%.", Target.CRATE);
 			}
+			if (s.wavesThisRound == 0 && s.loadedThisRound == 0 && cooked > 0 && cooked < set.style.openingBatch() && s.raw > 0)
+			{
+				return Instruction.of("Keep cooking", "Finish cooking your first " + set.style.openingBatch() + " (" + s.raw + " left).", Target.SHRINE);
+			}
 			boolean opener = s.wavesThisRound == 0 && cooked == 0 && s.loadedThisRound == 0;
 			if (opener && s.raw >= set.style.openingBatch())
 			{
@@ -437,6 +441,12 @@ public final class Planner
 		if (loadable > 0 && remaining != 0 && stormDanger(s, set))
 		{
 			return Instruction.now("Load now", "Storm at " + s.storm + "%. Get " + loadable + " fish in before it fills.", Target.CRATE);
+		}
+
+		// Don't break off half way through cooking.
+		if (s.cooking && s.raw > 0 && cook != CookRule.NEVER)
+		{
+			return Instruction.of("Keep cooking", s.raw + " raw left to cook.", Target.SHRINE);
 		}
 
 		if (set.style == PlayStyle.MY_ROUTE && set.mode != GameMode.SOLO)
@@ -594,7 +604,13 @@ public final class Planner
 		if (cook == CookRule.OPENER_THEN_FULL_BAG)
 		{
 			// Opening batch while waiting for a double; after that, only a full bag gets cooked.
-			return s.cooked + s.crystal == 0 ? set.style.openingBatch() : Integer.MAX_VALUE;
+			int done = s.cooked + s.crystal;
+			if (done == 0)
+			{
+				return set.style.openingBatch();
+			}
+			// Part way through cooking the opener: keep going.
+			return done < set.style.openingBatch() && s.loadedThisRound == 0 ? 1 : Integer.MAX_VALUE;
 		}
 		// Always-cook styles: cook in batches too, so you aren't walking back after every fish.
 		return PlannerSettings.batchSize(s.fishingLevel);

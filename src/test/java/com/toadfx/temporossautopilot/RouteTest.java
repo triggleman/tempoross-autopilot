@@ -50,6 +50,42 @@ public class RouteTest
 	}
 
 	@Test
+	public void finishCookingTheOpener()
+	{
+		Snapshot s = start();
+		s.raw = 4;
+		s.cooked = 4;
+		s.freeSlots = 16;
+		assertEquals("Keep cooking", Planner.plan(s, route()).getTitle());
+		s.raw = 0;
+		s.cooked = 8;
+		assertEquals(Target.FISHING_SPOT, Planner.plan(s, route()).getTarget());
+	}
+
+	@Test
+	public void keepCookingWhileCookingAnyStyle()
+	{
+		Snapshot s = start();
+		s.round = 2;
+		s.energy = 70;
+		s.raw = 10;
+		s.cooked = 18;
+		s.freeSlots = 0;
+		s.cooking = true;
+		assertEquals("Keep cooking", Planner.plan(s, route()).getTitle());
+		PlannerSettings b = new PlannerSettings();
+		b.style = PlayStyle.MAX_PERMITS;
+		Snapshot t = start();
+		t.raw = 3;
+		t.cooked = 4;
+		t.freeSlots = 21;
+		t.cooking = true;
+		assertEquals("Keep cooking", Planner.plan(t, b).getTitle());
+		t.cooking = false;
+		assertEquals(Target.FISHING_SPOT, Planner.plan(t, b).getTarget());
+	}
+
+	@Test
 	public void doubleUntilTheWaveThenFill()
 	{
 		Snapshot s = start();

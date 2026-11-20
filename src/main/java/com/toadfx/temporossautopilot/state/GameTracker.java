@@ -107,6 +107,8 @@ public class GameTracker
 	private int permitsAtStart = -1;
 	/** Catches and cooks from chat this tick (more reliable than inventory changes). */
 	private int chatCooks;
+	/** When the last "You successfully cook" message came (epoch ms). */
+	private long lastCookMillis;
 
 	// Inventory last tick, for counting catches, cooks and loads.
 	private int lastRaw;
@@ -331,6 +333,7 @@ public class GameTracker
 		{
 			game.fishCooked++;
 			chatCooks++;
+			lastCookMillis = System.currentTimeMillis();
 		}
 	}
 
@@ -750,6 +753,8 @@ public class GameTracker
 		s.secondsToCrate = StormClock.runSeconds(crate);
 		s.loadedThisRound = loadedThisRound;
 		s.wavesThisRound = wavesThisRound;
+		// Still cooking if a fish was cooked in the last few seconds and raw fish are left.
+		s.cooking = s.raw > 0 && System.currentTimeMillis() - lastCookMillis < 3000;
 		s.stormSecondsLeft = storm.secondsUntil(100);
 	}
 
