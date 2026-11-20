@@ -7,6 +7,17 @@ the next reward permit, how long until the storm wins, and a grade with tips aft
 
 Works on mass worlds, solo and duo. Made by ToadFx.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Loading the cannon with the top box](docs/screenshots/load-the-cannon.png) | ![Wave incoming: red path to the tether point with the countdown](docs/screenshots/tether-path.png) |
+| **Load the cannon**: the top box with what to do now, the storm and energy, and the next steps; the crate highlighted with your load count. | **Wave incoming**: the path turns red and leads to the nearest totem, with the wave countdown on it. |
+| ![Double spot with its timer](docs/screenshots/double-spot-timer.png) | ![Fish here highlight](docs/screenshots/fish-here.png) |
+| **Double spot** in orange with roughly how long it has left. | **Fish here**: the spot the next step points at. |
+| ![Cook at the shrine](docs/screenshots/cook-at-shrine.png) | ![Side panel](docs/screenshots/side-panel.png) ![Report card and history](docs/screenshots/report-card-history.png) |
+| **Cook here**: the shrine outlined when it's time to cook. | **Side panel**: play style and mode, session, last game's grade and tips, personal bests and history. |
+
 ## Play styles
 
 Pick what you're there for, in the side panel or the plugin settings. The next step, the
