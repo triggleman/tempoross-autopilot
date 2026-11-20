@@ -940,7 +940,10 @@ public class GameTracker
 		return getAnySpiritPool();
 	}
 
-	/** The spirit pool on your side: the nearest when first asked, then the same one all round. */
+	/**
+	 * The spirit pool on your side: picked once per round (by walking distance, see the plugin),
+	 * then the same one until the next round. Falls back to the straight-line nearest.
+	 */
 	public NPC getAnySpiritPool()
 	{
 		if (chosenPool == null || !pools.contains(chosenPool))
@@ -948,6 +951,22 @@ public class GameTracker
 			chosenPool = pools.isEmpty() ? null : nearestNpc(pools);
 		}
 		return chosenPool;
+	}
+
+	/** The pool already picked this round, or null. */
+	public NPC getChosenPool()
+	{
+		return chosenPool != null && pools.contains(chosenPool) ? chosenPool : null;
+	}
+
+	public void setChosenPool(NPC npc)
+	{
+		chosenPool = npc;
+	}
+
+	public Set<NPC> getPools()
+	{
+		return pools;
 	}
 
 	public Map<GameObject, Long> getClouds()

@@ -338,6 +338,7 @@ public class TemporossAutopilotPlugin extends Plugin
 		Instruction step = Planner.plan(s, settings);
 		loadTarget = s.phase == Phase.ENERGY && settings.mode == GameMode.SOLO ? settings.soloMethod.loadTarget(s.round) : -1;
 
+		updatePathfinder(s);
 		resolveTargets(step);
 		updatePath(s);
 		alerts(s);
@@ -407,7 +408,7 @@ public class TemporossAutopilotPlugin extends Plugin
 				npc = tracker.nearestNpc(tracker.getCrates());
 				break;
 			case SPIRIT_POOL:
-				npc = tracker.getAnySpiritPool();
+				npc = poolOnYourSide();
 				break;
 			case FIRE:
 				npc = tracker.nearestNpc(tracker.getFires());
@@ -432,6 +433,49 @@ public class TemporossAutopilotPlugin extends Plugin
 		targetCrate = tracker.nearestNpc(tracker.getCrates());
 	}
 
+	/** Floods the walking distances out from the player once per tick. */
+	private void updatePathfinder(Snapshot s)
+	{
+		if (s.phase == Phase.IDLE)
+		{
+			return;
+		}
+		Player me = client.getLocalPlayer();
+		WorldPoint here = me == null ? null : me.getWorldLocation();
+		pathfinder.update(client.getTopLevelWorldView(), here, null, null);
+	}
+
+	/**
+	 * The spirit pool to use: the one you can walk to soonest (there's one each side, and the
+	 * straight-line nearest can be across the water), picked once and kept for the round.
+	 */
+	private NPC poolOnYourSide()
+	{
+		NPC chosen = tracker.getChosenPool();
+		if (chosen != null)
+		{
+			return chosen;
+		}
+		NPC best = null;
+		int bestTicks = Integer.MAX_VALUE;
+		for (NPC pool : tracker.getPools())
+		{
+			WorldPoint p = pool.getWorldLocation();
+			int ticks = p == null || !pathfinder.isReady() ? -1 : pathfinder.ticksToArea(p, npcSize(pool));
+			if (ticks >= 0 && ticks < bestTicks)
+			{
+				bestTicks = ticks;
+				best = pool;
+			}
+		}
+		if (best == null)
+		{
+			return tracker.getAnySpiritPool();
+		}
+		tracker.setChosenPool(best);
+		return best;
+	}
+
 	/** Works out the walking route to the target, like GOTR Coach's path line. */
 	private void updatePath(Snapshot s)
 	{
@@ -441,9 +485,6 @@ public class TemporossAutopilotPlugin extends Plugin
 			pathTiles = Collections.emptyList();
 			return;
 		}
-		Player me = client.getLocalPlayer();
-		WorldPoint here = me == null ? null : me.getWorldLocation();
-		pathfinder.update(client.getTopLevelWorldView(), here, null, null);
 		List<WorldPoint> tiles;
 		if (targetObject != null)
 		{
