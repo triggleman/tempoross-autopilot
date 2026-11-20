@@ -8,7 +8,7 @@ import com.toadfx.temporossautopilot.model.SoloMethod;
 /** The player's choices that shape the plan. */
 public class PlannerSettings
 {
-	public PlayStyle style = PlayStyle.MAX_PERMITS;
+	public PlayStyle style = PlayStyle.RECOMMENDED_MASS;
 	public GameMode mode = GameMode.MASS;
 	public SoloMethod soloMethod = SoloMethod.STYLE;
 	/** Cooking rule for the Custom style. */

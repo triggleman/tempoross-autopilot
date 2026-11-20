@@ -42,7 +42,7 @@ public interface TemporossAutopilotConfig extends Config
 		description = "Max permits per hour, max points per game, max Fishing XP, the wiki cooking method, firefighting, one easy permit, or your own rules")
 	default PlayStyle playStyle()
 	{
-		return PlayStyle.MAX_PERMITS;
+		return PlayStyle.RECOMMENDED_MASS;
 	}
 
 	@ConfigItem(keyName = "pointsTarget", name = "Points target", position = 1, section = styleSection,
@@ -137,13 +137,6 @@ public interface TemporossAutopilotConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(keyName = "showStorm", name = "Storm bar", position = 2, section = overlaySection,
-		description = "Storm intensity with the danger mark, in the top box")
-	default boolean showStorm()
-	{
-		return true;
-	}
-
 	@ConfigItem(keyName = "showFishCount", name = "Fish counter", position = 3, section = overlaySection,
 		description = "Raw, cooked and loaded fish this round")
 	default boolean showFishCount()
@@ -228,6 +221,14 @@ public interface TemporossAutopilotConfig extends Config
 	default Color fireColor()
 	{
 		return new Color(255, 106, 77);
+	}
+
+	@Alpha
+	@ConfigItem(keyName = "timerColor", name = "Timers", position = 4, section = colourSection,
+		description = "Lightning, fire and wave timers, and the countdowns in the top box")
+	default Color timerColor()
+	{
+		return new Color(255, 235, 0);
 	}
 
 	@Alpha

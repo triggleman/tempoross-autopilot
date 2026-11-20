@@ -22,7 +22,7 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
- * The box at the top of the screen: what to do now, the game clock, the storm bar,
+ * The box at the top of the screen: what to do now, the game clock,
  * timers for what's coming (wave, fire, storm) and the next steps after this one.
  */
 public class TopOverlay extends Overlay
@@ -30,11 +30,8 @@ public class TopOverlay extends Overlay
 	private static final int WIDTH = 300;
 	private static final int PAD = 8;
 	private static final Color BG = new Color(12, 14, 16, 215);
-	private static final Color TRACK = new Color(58, 58, 58);
-	private static final Color STORM = new Color(240, 180, 76);
 	private static final Color MUTED = new Color(190, 190, 190);
 	private static final Color SOON = new Color(255, 210, 0);
-	private static final Color SAFE = new Color(122, 212, 138);
 
 	private final TemporossAutopilotPlugin plugin;
 	private final TemporossAutopilotConfig config;
@@ -87,7 +84,6 @@ public class TopOverlay extends Overlay
 		int inner = WIDTH - PAD * 2;
 
 		List<String> detail = wrap(step.getDetail(), fs, inner);
-		boolean stormOn = config.showStorm() && s.phase == Phase.ENERGY && s.storm >= 0;
 		List<Row> coming = config.showUpcoming() ? comingUp(s, tracker, now) : new ArrayList<>();
 		List<String> then = new ArrayList<>();
 		if (config.showUpcoming() && !plugin.getUpcoming().isEmpty())
@@ -102,10 +98,6 @@ public class TopOverlay extends Overlay
 
 		int ls = fs.getHeight();
 		int h = PAD + ls + 2 + fb.getHeight() + detail.size() * ls;
-		if (stormOn)
-		{
-			h += 6 + ls + 10;
-		}
 		if (!coming.isEmpty())
 		{
 			h += 6 + coming.size() * ls;
@@ -148,30 +140,6 @@ public class TopOverlay extends Overlay
 		{
 			y += ls;
 			g.drawString(line, PAD, y - fs.getDescent());
-		}
-
-		// Storm bar.
-		if (stormOn)
-		{
-			y += 6;
-			boolean danger = s.storm >= config.stormDanger();
-			y += ls;
-			g.setColor(MUTED);
-			g.drawString("Storm", PAD, y - fs.getDescent());
-			String pct = s.storm + "%";
-			g.setColor(danger ? config.urgentColor() : STORM);
-			g.drawString(pct, WIDTH - PAD - fs.stringWidth(pct), y - fs.getDescent());
-			int barX = PAD + fs.stringWidth("Storm") + 8;
-			int barW = WIDTH - PAD - fs.stringWidth("100%") - 8 - barX;
-			int barY = y - ls + (ls - 8) / 2;
-			g.setColor(TRACK);
-			g.fillRoundRect(barX, barY, barW, 8, 4, 4);
-			g.setColor(danger ? config.urgentColor() : STORM);
-			g.fillRoundRect(barX, barY, barW * Math.min(100, s.storm) / 100, 8, 4, 4);
-			g.setColor(config.urgentColor());
-			int markX = barX + barW * config.stormDanger() / 100;
-			g.fillRect(markX - 1, barY - 2, 2, 12);
-			y += 10;
 		}
 
 		// Coming up: timers.
@@ -223,7 +191,7 @@ public class TopOverlay extends Overlay
 		long wave = tracker.getWaveHitsAt();
 		if (wave > now)
 		{
-			rows.add(new Row("Wave hits", secs(wave - now), s.tethered ? SAFE : config.urgentColor()));
+			rows.add(new Row(s.tethered ? "Wave hits (tethered)" : "Wave hits: TETHER", secs(wave - now), s.tethered ? config.timerColor() : config.urgentColor()));
 		}
 		long fire = Long.MAX_VALUE;
 		for (long t : tracker.getClouds().values())
@@ -235,7 +203,7 @@ public class TopOverlay extends Overlay
 		}
 		if (fire != Long.MAX_VALUE)
 		{
-			rows.add(new Row("Lightning fire lands", secs(fire - now), config.fireColor()));
+			rows.add(new Row("Lightning fire lands", secs(fire - now), config.timerColor()));
 		}
 		if (!tracker.getFireSpread().isEmpty())
 		{
@@ -250,12 +218,12 @@ public class TopOverlay extends Overlay
 			if (spread != Long.MAX_VALUE)
 			{
 				rows.add(new Row(tracker.getFireSpread().size() + " fire" + (tracker.getFireSpread().size() == 1 ? "" : "s") + ", next spread",
-					secs(spread - now), config.fireColor()));
+					secs(spread - now), config.timerColor()));
 			}
 		}
 		if (s.phase == Phase.ENERGY && s.stormSecondsLeft > 0 && s.stormSecondsLeft <= 120)
 		{
-			rows.add(new Row("Storm fills", "~" + s.stormSecondsLeft + "s", s.stormSecondsLeft < 30 ? config.urgentColor() : STORM));
+			rows.add(new Row("Storm fills (" + s.storm + "%)", "~" + s.stormSecondsLeft + "s", s.stormSecondsLeft < 30 ? config.urgentColor() : config.timerColor()));
 		}
 		if (s.phase == Phase.ENERGY && s.energy >= 0)
 		{

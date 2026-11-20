@@ -14,10 +14,10 @@ highlights and your post-game grade all follow it.
 
 | Style | Cooking | What Autopilot does | Graded on |
 |---|---|---|---|
-| **Max permits / hr** (default) | Opener, then full bag | Theoatrix's mass run: catch 9 at the nearest spot and cook them, fill up at a double spot, cook it all, load a full bag, fish until he's down, then the spirit pool. Leave right away after the win | permits per hour |
+| **Recommended mass** (default) | Opener, then full bag | Theoatrix's mass run: catch 9 at the nearest spot and cook them, fill up at a double spot, cook it all, load a full bag, fish until he's down, then the spirit pool. Leave right away after the win | permits per game |
+| **Max permits / hr** | In batches | The wiki cooking method: catch 7 (9 at 85+), cook, start loading at 49% energy, leave right away after the win | permits per hour |
 | **Max points / game** | Opener, then full bag | Theoatrix's max points: catch about 8 and cook them while you wait for a double spot, fill up there, load a full bag; also douses fires and fixes masts, counting down to your points target | points per game |
 | **Max Fishing XP** | Never | Theoatrix's XP setup (crystal harpoon, spirit angler outfit, Imcando hammer): double spots first, then the spirit pool; loads raw only when the bag is full | Fishing XP per hour |
-| **Balanced XP + permits** | In batches | The wiki cooking method: catch 7 (9 at 85+), cook, start loading at 49% energy | XP and permits |
 | **Firefighter** | Yes | Puts out every fire and repairs every mast (40 points each); Humidify keeps your buckets full | points per game |
 | **Chill: one permit** | No | Gets you to 2,000 points, then tells you you're safe | reaching 2,000 |
 | **Custom** | Your choice | Your own cooking rule and points target | your target |
@@ -26,12 +26,10 @@ highlights and your post-game grade all follow it.
 
 - **Top instructions box**: at the top of the screen, what to do **now** (tether, repair, load, cook,
   fish or head to the spirit pool) with the reason and the points it's worth, the game timer and round,
-  the storm bar, a **coming up** list (wave hits in, lightning fire lands in, next fire spread, storm
+  a **coming up** list (wave hits in, lightning fire lands in, next fire spread, storm
   fills in, Tempoross energy, double spot open) and **then** the next two steps after this one.
 - **Points and permits box**: live points, permits earned, points to the next permit and your bonus roll.
   Permits come at 2,000 points, then every 700.
-- **Storm bar**: storm intensity with a danger mark (93% by default, the wiki's last safe trip from
-  the shrine), how many seconds until it fills at the current rate, and wave warnings.
 - **Lightning, fire and wave timers**: a countdown pie on each lightning cloud until the fire lands,
   on each fire until it spreads, and on every mast and totem pole until the wave hits (green once
   you're tethered, red on broken ones).
@@ -62,15 +60,15 @@ highlights and your post-game grade all follow it.
 | Section | Settings |
 |---|---|
 | Play style | Play style, points target, Custom cooking rule, barehanded fishing, gear reminders, buckets to carry |
-| Mass and solo | Mode (Mass / Solo / Duo), solo route, storm danger mark |
+| Mass and solo | Mode (Mass / Solo / Duo), solo route, storm danger mark (when to say load now) |
 | Overlays | Each box, highlight and timer on or off |
-| Colours | Target, double spot, fire, urgent |
+| Colours | Next step, double spot, fire, timers, urgent |
 | Alerts | Each alert on or off, storm warning level |
 | Report card | Chat summary, save history, reset history |
 
 ## Colours
 
-Defaults: next step magenta `#FF00F1`, double spot orange `#FF7300`, urgent red `#FF1E1E`. All can be changed in Colours.
+Defaults: next step magenta `#FF00F1`, double spot orange `#FF7300`, timers yellow `#FFEB00`, urgent red `#FF1E1E`. All can be changed in Colours.
 
 ## Credits
 

@@ -4,14 +4,15 @@
 
 First version.
 
-- Seven play styles: Max permits / hr, Max points / game, Max Fishing XP, Balanced XP + permits,
+- Seven play styles: Recommended mass, Max permits / hr, Max points / game, Max Fishing XP,
   Firefighter, Chill: one permit, Custom.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
-- Next step box, points and permits box, storm bar with danger mark and time left, scene highlights,
+- Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
-- Max permits and Max points follow Theoatrix's mass run (opener of 9, or 8 for max points, then a full bag). Imcando hammer reminder.
+- "Recommended mass" style (new default) is Theoatrix's mass run; Max permits / hr uses the wiki cooking method. Timers are yellow. Storm bar removed from the top box.
+- Max points follows Theoatrix's opener (opener of 9, or 8 for max points, then a full bag). Imcando hammer reminder.
 - New default colours: next step #FF00F1, double spot #FF7300, urgent #FF1E1E.
-- Top instructions box: now, timer, storm bar, coming-up timers and the next two steps (replaces the top-left box, which is now optional).
+- Top instructions box: now, timer, coming-up timers and the next two steps (replaces the top-left box, which is now optional).
 - Game timer; lightning, fire-spread and wave timers on the tiles, masts and totem poles.
 - Heads you to the spirit pool when energy hits 0. Double spots are pink by default.
 - Gear reminders: bring your best harpoon (by play style) and wear your angler or spirit angler outfit, if you own them.

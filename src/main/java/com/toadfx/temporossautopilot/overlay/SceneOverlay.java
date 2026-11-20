@@ -31,8 +31,6 @@ public class SceneOverlay extends Overlay
 {
 	private static final Stroke THIN = new BasicStroke(1.5f);
 	private static final Stroke THICK = new BasicStroke(2.5f);
-	private static final Color SAFE = new Color(122, 212, 138);
-	private static final Color WAVE = new Color(79, 195, 207);
 	private static final int PIE = 22;
 
 	private final TemporossAutopilotPlugin plugin;
@@ -84,7 +82,7 @@ public class SceneOverlay extends Overlay
 				{
 					int total = e.getKey().getId() == Ids.CLOUD_SHORT ? Ids.CLOUD_SHORT_MS : Ids.CLOUD_MS;
 					outlineTile(g, e.getKey().getCanvasTilePoly(), config.fireColor(), THIN);
-					timer(g, e.getKey().getCanvasTextLocation(g, "0.0", 0), left, total, config.fireColor(), "Fire");
+					timer(g, e.getKey().getCanvasTextLocation(g, "0.0", 0), left, total, config.timerColor(), "Fire");
 				}
 			}
 			for (Map.Entry<GameObject, Long> e : tracker.getFireSpread().entrySet())
@@ -92,7 +90,7 @@ public class SceneOverlay extends Overlay
 				long left = e.getValue() - now;
 				if (left > 0)
 				{
-					timer(g, e.getKey().getCanvasTextLocation(g, "0.0", 0), left, Ids.FIRE_SPREAD_MS, config.fireColor(), "Spreads");
+					timer(g, e.getKey().getCanvasTextLocation(g, "0.0", 0), left, Ids.FIRE_SPREAD_MS, config.timerColor(), "Spreads");
 				}
 			}
 		}
@@ -100,7 +98,7 @@ public class SceneOverlay extends Overlay
 		if (config.showWaveTimers() && waveAt > now && s.inGame())
 		{
 			long left = waveAt - now;
-			Color c = s.tethered ? SAFE : WAVE;
+			Color c = config.timerColor();
 			for (GameObject t : tracker.getTethers())
 			{
 				outlineObject(g, t, c, THIN);
@@ -108,7 +106,7 @@ public class SceneOverlay extends Overlay
 			}
 			for (GameObject t : tracker.getDamagedTethers())
 			{
-				timer(g, t.getCanvasTextLocation(g, "0.0", 160), left, Ids.WAVE_MS, config.fireColor(), "Broken");
+				timer(g, t.getCanvasTextLocation(g, "0.0", 160), left, Ids.WAVE_MS, c, "Broken");
 			}
 		}
 

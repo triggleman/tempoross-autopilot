@@ -10,7 +10,7 @@ import java.util.List;
 public class GameRecord
 {
 	public long endedAtMillis;
-	public PlayStyle style = PlayStyle.MAX_PERMITS;
+	public PlayStyle style = PlayStyle.RECOMMENDED_MASS;
 	public GameMode mode = GameMode.MASS;
 	public boolean won;
 	public int seconds;

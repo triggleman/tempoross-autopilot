@@ -75,18 +75,18 @@ public class PlannerTest
 		Snapshot s = energy();
 		s.raw = 7;
 		s.freeSlots = 13;
-		assertEquals(Target.SHRINE, Planner.plan(s, style(PlayStyle.BALANCED)).getTarget());
+		assertEquals(Target.SHRINE, Planner.plan(s, style(PlayStyle.MAX_PERMITS)).getTarget());
 		s.raw = 6;
-		assertEquals(Target.FISHING_SPOT, Planner.plan(s, style(PlayStyle.BALANCED)).getTarget());
+		assertEquals(Target.FISHING_SPOT, Planner.plan(s, style(PlayStyle.MAX_PERMITS)).getTarget());
 		s.fishingLevel = 90;
 		s.raw = 8;
-		assertEquals("9 at 85+ Fishing", Target.FISHING_SPOT, Planner.plan(s, style(PlayStyle.BALANCED)).getTarget());
+		assertEquals("9 at 85+ Fishing", Target.FISHING_SPOT, Planner.plan(s, style(PlayStyle.MAX_PERMITS)).getTarget());
 	}
 
 	@Test
 	public void theoatrixMassRunCooksOpenerThenFullBag()
 	{
-		PlannerSettings p = style(PlayStyle.MAX_PERMITS);
+		PlannerSettings p = style(PlayStyle.RECOMMENDED_MASS);
 		Snapshot s = energy();
 		s.raw = 8;
 		s.freeSlots = 20;

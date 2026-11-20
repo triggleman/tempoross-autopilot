@@ -110,10 +110,17 @@ public final class Grader
 					return -cost;
 				}
 				return 0;
-			case BALANCED:
+			case MAX_PERMITS:
 				if (r.fishCaught > 10 && r.fishCooked * 10 < r.fishCaught * 8)
 				{
 					tips.add(new Tip(10, "Only " + r.fishCooked + " of " + r.fishCaught + " fish were cooked. Cook in batches of 7 (9 at 85+)."));
+					return -10;
+				}
+				return 0;
+			case RECOMMENDED_MASS:
+				if (r.fishCaught > 10 && r.fishCooked * 10 < r.fishCaught * 8)
+				{
+					tips.add(new Tip(10, "Only " + r.fishCooked + " of " + r.fishCaught + " fish were cooked. Cook your whole bag before loading."));
 					return -10;
 				}
 				return 0;

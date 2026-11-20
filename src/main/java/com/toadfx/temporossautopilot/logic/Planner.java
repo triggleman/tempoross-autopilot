@@ -25,7 +25,7 @@ public final class Planner
 	/** Extra seconds kept in hand when racing the storm. */
 	private static final int STORM_MARGIN = 4;
 	/** Energy at which the cooking method starts loading. */
-	private static final int BALANCED_LOAD_ENERGY = 49;
+	private static final int COOKING_METHOD_LOAD_ENERGY = 49;
 
 	private Planner()
 	{
@@ -244,8 +244,10 @@ public final class Planner
 				return "Fish and cook, and put out every fire you can. Humidify refills buckets.";
 			case MAX_POINTS:
 				return "Catch 8 and cook them while you wait for a double spot. Aim for " + String.format("%,d", set.pointsTarget) + " points.";
-			case MAX_PERMITS:
+			case RECOMMENDED_MASS:
 				return "Catch 9 at the nearest spot and cook them, then fill up at a double spot.";
+			case MAX_PERMITS:
+				return "Cook 7 at a time (9 at 85+ Fishing) and start loading at 49% energy.";
 			default:
 				return set.mode == GameMode.MASS ? "Head for a fishing spot when the game starts." : "Start fishing as soon as you land.";
 		}
@@ -260,7 +262,7 @@ public final class Planner
 		{
 			permits += " + " + Permits.bonusChance(s.points) + "% roll";
 		}
-		if (set.style == PlayStyle.MAX_PERMITS)
+		if (set.style == PlayStyle.MAX_PERMITS || set.style == PlayStyle.RECOMMENDED_MASS)
 		{
 			return Instruction.soon("Leave now", "Subdued! " + permits + ". Right-click Leave on the first mate for the next game.", Target.LEAVE);
 		}
@@ -457,7 +459,7 @@ public final class Planner
 		{
 			return true;
 		}
-		if (set.style == PlayStyle.BALANCED && s.energy >= 0 && s.energy <= BALANCED_LOAD_ENERGY && s.raw == 0)
+		if (set.style == PlayStyle.MAX_PERMITS && s.energy >= 0 && s.energy <= COOKING_METHOD_LOAD_ENERGY && s.raw == 0)
 		{
 			return true;
 		}
