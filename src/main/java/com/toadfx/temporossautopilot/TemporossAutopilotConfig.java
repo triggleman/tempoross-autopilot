@@ -18,6 +18,27 @@ public interface TemporossAutopilotConfig extends Config
 {
 	String GROUP = "temporossautopilot";
 
+	enum PathStyle
+	{
+		LINE("Line"),
+		TILES("Tiles"),
+		LINE_AND_TILES("Line and tiles"),
+		OFF("Off");
+
+		private final String label;
+
+		PathStyle(String label)
+		{
+			this.label = label;
+		}
+
+		@Override
+		public String toString()
+		{
+			return label;
+		}
+	}
+
 	@ConfigSection(name = "Play style", description = "What you're at Tempoross for", position = 0)
 	String styleSection = "style";
 
@@ -27,13 +48,16 @@ public interface TemporossAutopilotConfig extends Config
 	@ConfigSection(name = "Overlays", description = "What to show on screen", position = 2)
 	String overlaySection = "overlays";
 
-	@ConfigSection(name = "Colours", description = "Highlight colours", position = 3, closedByDefault = true)
+	@ConfigSection(name = "Path", description = "The walking line to your next step", position = 3)
+	String pathSection = "path";
+
+	@ConfigSection(name = "Colours", description = "Highlight colours", position = 4, closedByDefault = true)
 	String colourSection = "colours";
 
-	@ConfigSection(name = "Alerts", description = "Notifications", position = 4)
+	@ConfigSection(name = "Alerts", description = "Notifications", position = 5)
 	String alertSection = "alerts";
 
-	@ConfigSection(name = "Report card", description = "Post-game grade, tips and history", position = 5)
+	@ConfigSection(name = "Report card", description = "Post-game grade, tips and history", position = 6)
 	String coachSection = "coaching";
 
 	// ------------------------------------------------------------------ play style
@@ -198,6 +222,53 @@ public interface TemporossAutopilotConfig extends Config
 	default boolean highlightBroken()
 	{
 		return true;
+	}
+
+	// ------------------------------------------------------------------ path
+
+	@ConfigItem(keyName = "pathStyle", name = "Path to next step", position = 0, section = pathSection,
+		description = "Draw the walking route to what the next step points at")
+	default PathStyle pathStyle()
+	{
+		return PathStyle.LINE;
+	}
+
+	@ConfigItem(keyName = "minimapPath", name = "Path on minimap", position = 1, section = pathSection,
+		description = "Also draw the route on the minimap")
+	default boolean minimapPath()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "pathWidth", name = "Path width", position = 2, section = pathSection,
+		description = "Line thickness")
+	@Range(min = 1, max = 8)
+	default int pathWidth()
+	{
+		return 3;
+	}
+
+	@ConfigItem(keyName = "roundCorners", name = "Rounded corners", position = 3, section = pathSection,
+		description = "Smooth the line's corners")
+	default boolean roundCorners()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "pathDetail", name = "Path detail", position = 4, section = pathSection,
+		description = "1 = every tile of your walk. Higher merges tiles into longer straight stretches")
+	@Range(min = 1, max = 30)
+	default int pathDetail()
+	{
+		return 1;
+	}
+
+	@Alpha
+	@ConfigItem(keyName = "pathColor", name = "Path colour", position = 5, section = pathSection,
+		description = "The path's colour (it turns to the urgent colour when a step has to happen now)")
+	default Color pathColor()
+	{
+		return new Color(255, 0, 241, 200);
 	}
 
 	// ------------------------------------------------------------------ colours

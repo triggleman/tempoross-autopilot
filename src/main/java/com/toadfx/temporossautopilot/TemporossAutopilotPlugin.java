@@ -14,6 +14,9 @@ import com.toadfx.temporossautopilot.logic.PlannerSettings;
 import com.toadfx.temporossautopilot.logic.Snapshot;
 import com.toadfx.temporossautopilot.logic.Target;
 import com.toadfx.temporossautopilot.model.GameMode;
+import com.toadfx.temporossautopilot.overlay.MinimapPathOverlay;
+import com.toadfx.temporossautopilot.overlay.PathOverlay;
+import com.toadfx.temporossautopilot.overlay.Pathfinder;
 import com.toadfx.temporossautopilot.overlay.PermitOverlay;
 import com.toadfx.temporossautopilot.overlay.SceneOverlay;
 import com.toadfx.temporossautopilot.overlay.StepOverlay;
@@ -35,6 +38,9 @@ import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
+import net.runelite.api.NPCComposition;
+import net.runelite.api.Player;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
@@ -97,6 +103,16 @@ public class TemporossAutopilotPlugin extends Plugin
 	@Inject
 	private SceneOverlay sceneOverlay;
 
+	@Inject
+	private PathOverlay pathOverlay;
+
+	@Inject
+	private MinimapPathOverlay minimapPathOverlay;
+
+	private final Pathfinder pathfinder = new Pathfinder();
+	private volatile List<WorldPoint> path = Collections.emptyList();
+	private volatile List<WorldPoint> pathTiles = Collections.emptyList();
+
 	private GameTracker tracker;
 	private final GearMemory gear = new GearMemory();
 	private boolean inLobby;
@@ -138,6 +154,8 @@ public class TemporossAutopilotPlugin extends Plugin
 		overlayManager.add(permitOverlay);
 		overlayManager.add(topOverlay);
 		overlayManager.add(sceneOverlay);
+		overlayManager.add(pathOverlay);
+		overlayManager.add(minimapPathOverlay);
 
 		BufferedImage logo = ImageUtil.loadImageResource(TemporossAutopilotPlugin.class, "panel_logo.png");
 		BufferedImage icon = ImageUtil.loadImageResource(TemporossAutopilotPlugin.class, "panel_icon.png");
@@ -159,6 +177,10 @@ public class TemporossAutopilotPlugin extends Plugin
 		overlayManager.remove(permitOverlay);
 		overlayManager.remove(topOverlay);
 		overlayManager.remove(sceneOverlay);
+		overlayManager.remove(pathOverlay);
+		overlayManager.remove(minimapPathOverlay);
+		path = Collections.emptyList();
+		pathTiles = Collections.emptyList();
 		clientToolbar.removeNavigation(navButton);
 		tracker = null;
 		snapshot = new Snapshot();
@@ -306,6 +328,7 @@ public class TemporossAutopilotPlugin extends Plugin
 		loadTarget = s.phase == Phase.ENERGY && settings.mode == GameMode.SOLO ? settings.soloMethod.loadTarget(s.round) : -1;
 
 		resolveTargets(step);
+		updatePath(s);
 		alerts(s);
 		lobbyReminder(s, settings);
 
@@ -396,6 +419,45 @@ public class TemporossAutopilotPlugin extends Plugin
 		targetNpc = npc;
 		targetObject = obj;
 		targetCrate = tracker.nearestNpc(tracker.getCrates());
+	}
+
+	/** Works out the walking route to the target, like GOTR Coach's path line. */
+	private void updatePath(Snapshot s)
+	{
+		if (config.pathStyle() == TemporossAutopilotConfig.PathStyle.OFF && !config.minimapPath() || s.phase == Phase.IDLE)
+		{
+			path = Collections.emptyList();
+			pathTiles = Collections.emptyList();
+			return;
+		}
+		Player me = client.getLocalPlayer();
+		WorldPoint here = me == null ? null : me.getWorldLocation();
+		pathfinder.update(client.getTopLevelWorldView(), here, null, null);
+		List<WorldPoint> tiles;
+		if (targetObject != null)
+		{
+			tiles = pathfinder.pathTo(targetObject);
+		}
+		else if (targetNpc != null)
+		{
+			tiles = pathfinder.pathToArea(targetNpc.getWorldLocation(), npcSize(targetNpc));
+		}
+		else
+		{
+			tiles = Collections.emptyList();
+		}
+		pathTiles = tiles;
+		path = tiles.isEmpty() ? tiles : pathfinder.simplify(tiles, config.pathDetail());
+	}
+
+	private static int npcSize(NPC npc)
+	{
+		NPCComposition comp = npc.getTransformedComposition();
+		if (comp == null)
+		{
+			comp = npc.getComposition();
+		}
+		return comp == null ? 1 : Math.max(1, comp.getSize());
 	}
 
 	private void alerts(Snapshot s)
@@ -562,6 +624,16 @@ public class TemporossAutopilotPlugin extends Plugin
 	public GameObject getTargetObject()
 	{
 		return targetObject;
+	}
+
+	public List<WorldPoint> getPath()
+	{
+		return path;
+	}
+
+	public List<WorldPoint> getPathTiles()
+	{
+		return pathTiles;
 	}
 
 	public NPC getTargetCrate()

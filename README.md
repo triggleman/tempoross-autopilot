@@ -37,6 +37,7 @@ highlights and your post-game grade all follow it.
   sent to the spirit pool, highlighted even before it opens.
 - **Storm race**: if you're holding fish and the storm will fill before you can reach the crate,
   Autopilot tells you to load now.
+- **Path line**: a walking line from your feet to the next step's target (crate, shrine, fishing spot, spirit pool, mast, fire), like GOTR Coach's, plus the same route on the minimap. Line, tiles or both; width, rounded corners and colour are settings. It turns red when the step is urgent.
 - **Highlights**: the next target with a label, double spots (pink by default), fires, broken masts and totems, and a
   load counter over the crate.
 - **Solo routes** from the OSRS Wiki with exact load counts per round: 17 / 19 / 19 / 27,
@@ -62,6 +63,7 @@ highlights and your post-game grade all follow it.
 | Play style | Play style, points target, Custom cooking rule, barehanded fishing, gear reminders, buckets to carry |
 | Mass and solo | Mode (Mass / Solo / Duo), solo route, storm danger mark (when to say load now) |
 | Overlays | Each box, highlight and timer on or off |
+| Path | Line / tiles / both / off, minimap, width, rounded corners, detail, colour |
 | Colours | Next step, double spot, fire, timers, urgent |
 | Alerts | Each alert on or off, storm warning level |
 | Report card | Chat summary, save history, reset history |
