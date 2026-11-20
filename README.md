@@ -1,3 +1,5 @@
+![Tempoross Autopilot](banner.png)
+
 # Tempoross Autopilot
 
 A RuneLite plugin that guides you through Tempoross: what to do next, how close you are to
