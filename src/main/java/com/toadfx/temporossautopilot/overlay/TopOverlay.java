@@ -231,7 +231,8 @@ public class TopOverlay extends Overlay
 		}
 		if (s.doubleSpot && s.phase == Phase.ENERGY)
 		{
-			rows.add(new Row("Double spot", "open now", config.doubleColor()));
+			String t = tracker.doubleTimer(tracker.getDoubleSpot());
+			rows.add(new Row(t.startsWith("~") ? "Double spot" : "Double spot open", t.isEmpty() ? "open now" : t, config.doubleColor()));
 		}
 		return rows;
 	}

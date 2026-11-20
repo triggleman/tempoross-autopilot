@@ -38,7 +38,7 @@ highlights and your post-game grade all follow it.
 - **Storm race**: if you're holding fish and the storm will fill before you can reach the crate,
   Autopilot tells you to load now.
 - **Path line**: a walking line from your feet to the next step's target (crate, shrine, fishing spot, spirit pool, mast, fire), like GOTR Coach's, plus the same route on the minimap. Line, tiles or both; width, rounded corners and colour are settings. It turns red when the step is urgent.
-- **Highlights**: the next target with a label, double spots (pink by default), fires, broken masts and totems, and a
+- **Highlights**: the next target with a label, double spots with a timer (how long it has been up, then roughly how long it has left once the plugin has seen a few), fires, broken masts and totems, and a
   load counter over the crate.
 - **Solo routes** from the OSRS Wiki with exact load counts per round: 17 / 19 / 19 / 27,
   5 rounds, and cooking + firefighting. Autopilot stops you at the number, because loading more

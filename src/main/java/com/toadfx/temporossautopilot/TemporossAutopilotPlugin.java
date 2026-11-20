@@ -47,6 +47,7 @@ import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.NpcChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.gameval.InventoryID;
@@ -71,6 +72,7 @@ public class TemporossAutopilotPlugin extends Plugin
 	private static final String KEY_HISTORY = "history";
 	private static final String KEY_BESTS = "bests";
 	private static final String KEY_GEAR = "ownedGear";
+	private static final String KEY_DOUBLE_LIFE = "doubleLife";
 	private static final int HISTORY_MAX = 50;
 
 	@Inject
@@ -248,6 +250,15 @@ public class TemporossAutopilotPlugin extends Plugin
 		if (tracker != null)
 		{
 			tracker.npcSpawned(e.getNpc());
+		}
+	}
+
+	@Subscribe
+	public void onNpcChanged(NpcChanged e)
+	{
+		if (tracker != null)
+		{
+			tracker.npcChanged(e.getNpc());
 		}
 	}
 
@@ -568,6 +579,10 @@ public class TemporossAutopilotPlugin extends Plugin
 		}
 		configManager.setRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_HISTORY, sb.toString());
 		configManager.setRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_BESTS, bests.serialize());
+		if (tracker != null)
+		{
+			configManager.setRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_DOUBLE_LIFE, tracker.serializeDoubleLife());
+		}
 	}
 
 	private void loadHistory()
@@ -589,6 +604,11 @@ public class TemporossAutopilotPlugin extends Plugin
 		}
 		bests = PersonalBests.parse(configManager.getRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_BESTS));
 		gear.load(configManager.getRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_GEAR));
+		String life = configManager.getRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_DOUBLE_LIFE);
+		if (life != null && tracker != null)
+		{
+			tracker.loadDoubleLife(life);
+		}
 		gear.sawCarried(ids(client.getItemContainer(InventoryID.INV)), ids(client.getItemContainer(InventoryID.WORN)));
 		if (!history.isEmpty())
 		{

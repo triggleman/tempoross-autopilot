@@ -49,10 +49,18 @@ public class GameTracker
 	private final Set<NPC> spots = new HashSet<>();
 	private final Set<NPC> crates = new HashSet<>();
 	private final Set<NPC> fires = new HashSet<>();
-	private NPC doubleSpot;
-	/** There's a spirit pool on each side of the cove; we always point at the nearest one. */
+	/** Double spots and when each appeared (epoch ms). Mass worlds can have one on each side. */
+	private final Map<NPC, Long> doubles = new ConcurrentHashMap<>();
+	/** Average life of a double spot seen so far (ms), learnt from the game, 0 = not known yet. */
+	private volatile long doubleLifeMs;
+	private int doubleLifeSamples;
+	private NPC fishedDouble;
+	/**
+	 * Spirit pools, open or not (a pool can switch between the two without despawning). There's
+	 * one on each side of the cove: we pick the nearest when the pool step starts and stick to it.
+	 */
 	private final Set<NPC> pools = new HashSet<>();
-	private final Set<NPC> inactivePools = new HashSet<>();
+	private NPC chosenPool;
 	/** Ticks spent outside the cove; a game only ends after a few, so a loading blip doesn't split it. */
 	private int outsideTicks;
 	private static final int OUTSIDE_TICKS_TO_END = 5;
@@ -76,6 +84,23 @@ public class GameTracker
 	private int loadedThisRound;
 	private boolean waveIncoming;
 	private boolean wonSeen;
+	/** "12s" up, or "~8s left" once we've learnt how long doubles last. */
+	public String doubleTimer(NPC npc)
+	{
+		long since = getDoubleSince(npc);
+		if (since <= 0)
+		{
+			return "";
+		}
+		long age = System.currentTimeMillis() - since;
+		long life = getDoubleLifeMs();
+		if (life > 0)
+		{
+			return "~" + Math.max(0, (life - age + 999) / 1000) + "s left";
+		}
+		return age / 1000 + "s";
+	}
+
 	/** Lowest essence seen while the spirit pool was open this game (0 = subdued). */
 	private int lowestPoolEssence = 100;
 	private int permitsAtStart = -1;
@@ -93,7 +118,6 @@ public class GameTracker
 	private long gameStartMillis;
 	private int startFishingXp;
 	private int startCookingXp;
-	private boolean doubleFished;
 	private WorldPoint lastTile;
 	private int stillTicks;
 
@@ -125,8 +149,7 @@ public class GameTracker
 		}
 		if (id == Ids.DOUBLE_SPOT)
 		{
-			doubleSpot = npc;
-			doubleFished = false;
+			doubles.put(npc, System.currentTimeMillis());
 			if (game != null && phase == Phase.ENERGY && nearMe(npc, 20))
 			{
 				// Only doubles on your side of the island count (mass worlds have them everywhere).
@@ -134,13 +157,9 @@ public class GameTracker
 				onDoubleSpot.run();
 			}
 		}
-		else if (id == Ids.SPIRIT_POOL)
+		else if (id == Ids.SPIRIT_POOL || id == Ids.SPIRIT_POOL_INACTIVE)
 		{
 			pools.add(npc);
-		}
-		else if (id == Ids.SPIRIT_POOL_INACTIVE)
-		{
-			inactivePools.add(npc);
 		}
 		else if (Ids.AMMO_CRATES.contains(id))
 		{
@@ -161,12 +180,44 @@ public class GameTracker
 		spots.remove(npc);
 		crates.remove(npc);
 		fires.remove(npc);
-		if (npc == doubleSpot)
+		Long since = doubles.remove(npc);
+		if (since != null)
 		{
-			doubleSpot = null;
+			learnDoubleLife(System.currentTimeMillis() - since);
 		}
 		pools.remove(npc);
-		inactivePools.remove(npc);
+		if (npc == chosenPool)
+		{
+			chosenPool = null;
+		}
+	}
+
+	/** An NPC changed into another (a spot turning double, a pool opening): file it again. */
+	public void npcChanged(NPC npc)
+	{
+		boolean wasDouble = doubles.containsKey(npc);
+		if (wasDouble && npc.getId() == Ids.DOUBLE_SPOT)
+		{
+			return;
+		}
+		boolean keepPool = npc == chosenPool;
+		npcDespawned(npc);
+		npcSpawned(npc);
+		if (keepPool && pools.contains(npc))
+		{
+			chosenPool = npc;
+		}
+	}
+
+	private void learnDoubleLife(long ms)
+	{
+		if (ms < 3000 || ms > 180000)
+		{
+			return;
+		}
+		int n = Math.min(doubleLifeSamples, 19);
+		doubleLifeMs = doubleLifeSamples == 0 ? ms : (doubleLifeMs * n + ms) / (n + 1);
+		doubleLifeSamples++;
 	}
 
 	public void objectSpawned(GameObject obj)
@@ -223,9 +274,9 @@ public class GameTracker
 		spots.clear();
 		crates.clear();
 		fires.clear();
-		doubleSpot = null;
 		pools.clear();
-		inactivePools.clear();
+		chosenPool = null;
+		doubles.clear();
 		clouds.clear();
 		fireSpread.clear();
 		shrines.clear();
@@ -303,7 +354,7 @@ public class GameTracker
 		readInventory(s);
 
 		Phase before = phase;
-		if (game != null && !pools.isEmpty() && essence >= 0)
+		if (game != null && anyPool(true) && essence >= 0)
 		{
 			lowestPoolEssence = Math.min(lowestPoolEssence, essence);
 		}
@@ -343,6 +394,7 @@ public class GameTracker
 		// Rounds: back to the energy phase after the spirit pool.
 		if (before == Phase.ESSENCE && phase == Phase.ENERGY)
 		{
+			chosenPool = null;
 			round++;
 			loadedThisRound = 0;
 			if (game != null)
@@ -399,7 +451,7 @@ public class GameTracker
 			return game != null ? phase : Phase.WAITING;
 		}
 		// The pool stays open while Tempoross's energy recharges, so the pool decides the phase.
-		if (energy == 0 || !pools.isEmpty())
+		if (energy == 0 || anyPool(true))
 		{
 			return Phase.ESSENCE;
 		}
@@ -656,9 +708,9 @@ public class GameTracker
 	private void trackDoubleAndIdle(Player me, WorldPoint here)
 	{
 		Actor target = me.getInteracting();
-		if (doubleSpot != null && target == doubleSpot && !doubleFished)
+		if (target instanceof NPC && doubles.containsKey(target) && target != fishedDouble)
 		{
-			doubleFished = true;
+			fishedDouble = (NPC) target;
 			game.doublesFished++;
 		}
 		boolean still = here.equals(lastTile) && me.getAnimation() == -1 && target == null;
@@ -682,9 +734,9 @@ public class GameTracker
 		s.fishingLevel = client.getRealSkillLevel(Skill.FISHING);
 		s.waveIncoming = waveIncoming;
 		s.tethered = client.getVarbitValue(VarbitID.TEMPOROSS_TETHERED) > 0;
-		s.doubleSpot = doubleSpot != null;
-		s.spiritPool = !pools.isEmpty();
-		s.poolInactive = !inactivePools.isEmpty();
+		s.doubleSpot = !doubles.isEmpty();
+		s.spiritPool = anyPool(true);
+		s.poolInactive = anyPool(false);
 		s.fireDistance = nearestDistance(fires, here);
 		s.damagedTetherDistance = nearestObjectDistance(damagedTethers, here);
 		int crate = nearestDistance(crates, here);
@@ -744,7 +796,7 @@ public class GameTracker
 		return best;
 	}
 
-	public NPC nearestNpc(Set<NPC> npcs)
+	public NPC nearestNpc(java.util.Collection<NPC> npcs)
 	{
 		Player me = client.getLocalPlayer();
 		if (me == null)
@@ -820,20 +872,70 @@ public class GameTracker
 		return storm;
 	}
 
+	/** The nearest double spot, or null. */
 	public NPC getDoubleSpot()
 	{
-		return doubleSpot;
+		return doubles.isEmpty() ? null : nearestNpc(doubles.keySet());
+	}
+
+	/** When a double spot appeared (epoch ms), or 0. */
+	public long getDoubleSince(NPC npc)
+	{
+		Long t = npc == null ? null : doubles.get(npc);
+		return t == null ? 0 : t;
+	}
+
+	/** Learnt average double spot life (ms), or 0 until a couple have been seen. */
+	public long getDoubleLifeMs()
+	{
+		return doubleLifeSamples >= 2 ? doubleLifeMs : 0;
+	}
+
+	public String serializeDoubleLife()
+	{
+		return doubleLifeMs + "," + doubleLifeSamples;
+	}
+
+	public void loadDoubleLife(String s)
+	{
+		try
+		{
+			String[] p = s.split(",");
+			doubleLifeMs = Long.parseLong(p[0]);
+			doubleLifeSamples = Integer.parseInt(p[1]);
+		}
+		catch (RuntimeException e)
+		{
+			doubleLifeMs = 0;
+			doubleLifeSamples = 0;
+		}
+	}
+
+	private boolean anyPool(boolean open)
+	{
+		for (NPC p : pools)
+		{
+			if ((p.getId() == Ids.SPIRIT_POOL) == open)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public NPC getSpiritPool()
 	{
-		return nearestNpc(pools);
+		return getAnySpiritPool();
 	}
 
-	/** The open spirit pool, or the closed one waiting to open. */
+	/** The spirit pool on your side: the nearest when first asked, then the same one all round. */
 	public NPC getAnySpiritPool()
 	{
-		return !pools.isEmpty() ? nearestNpc(pools) : nearestNpc(inactivePools);
+		if (chosenPool == null || !pools.contains(chosenPool))
+		{
+			chosenPool = pools.isEmpty() ? null : nearestNpc(pools);
+		}
+		return chosenPool;
 	}
 
 	public Map<GameObject, Long> getClouds()

@@ -114,7 +114,9 @@ public class SceneOverlay extends Overlay
 		if (config.highlightDouble() && dbl != null && s.inGame())
 		{
 			outlineTile(g, dbl.getCanvasTilePoly(), config.doubleColor(), THICK);
-			label(g, dbl.getCanvasTextLocation(g, "DOUBLE SPOT", 0), "DOUBLE SPOT", config.doubleColor());
+			String t = tracker.doubleTimer(dbl);
+			String text = t.isEmpty() ? "DOUBLE SPOT" : "DOUBLE SPOT  " + t;
+			label(g, dbl.getCanvasTextLocation(g, text, 0), text, config.doubleColor());
 		}
 
 		if (config.showLoadCounter() && s.inGame())
