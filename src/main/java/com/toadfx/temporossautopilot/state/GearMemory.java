@@ -25,7 +25,7 @@ public class GearMemory
 
 	public static boolean tracked(int id)
 	{
-		return Ids.HARPOONS.contains(id) || contains(ANGLER, id) || contains(SPIRIT_ANGLER, id);
+		return Ids.HARPOONS.contains(id) || contains(ANGLER, id) || contains(SPIRIT_ANGLER, id) || id == ItemID.IMCANDO_HAMMER;
 	}
 
 	/** Items carried or worn: always owned. */

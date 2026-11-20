@@ -525,6 +525,7 @@ public class GameTracker
 				}
 				harpoon |= Ids.HARPOONS.contains(id);
 				hammer |= Ids.HAMMERS.contains(id);
+				s.carriesImcando |= id == net.runelite.api.gameval.ItemID.IMCANDO_HAMMER;
 				s.carriedHarpoon = Harpoon.best(s.carriedHarpoon, Harpoon.of(id), com.toadfx.temporossautopilot.model.PlayStyle.MAX_PERMITS);
 			}
 		}
@@ -536,6 +537,7 @@ public class GameTracker
 				int id = it.getId();
 				harpoon |= Ids.HARPOONS.contains(id);
 				hammer |= Ids.HAMMERS.contains(id);
+				s.carriesImcando |= id == net.runelite.api.gameval.ItemID.IMCANDO_HAMMER;
 				s.carriedHarpoon = Harpoon.best(s.carriedHarpoon, Harpoon.of(id), com.toadfx.temporossautopilot.model.PlayStyle.MAX_PERMITS);
 				for (int i = 0; i < 4; i++)
 				{
@@ -556,6 +558,7 @@ public class GameTracker
 			s.ownsSpirit[i] = gear.owns(GearMemory.SPIRIT_ANGLER[i]);
 			s.ownsAngler[i] = gear.owns(GearMemory.ANGLER[i]);
 		}
+		s.ownsImcando = gear.owns(net.runelite.api.gameval.ItemID.IMCANDO_HAMMER);
 		for (int id : gear.getOwned())
 		{
 			Harpoon h = Harpoon.of(id);

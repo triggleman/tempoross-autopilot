@@ -84,6 +84,33 @@ public class PlannerTest
 	}
 
 	@Test
+	public void theoatrixMassRunCooksOpenerThenFullBag()
+	{
+		PlannerSettings p = style(PlayStyle.MAX_PERMITS);
+		Snapshot s = energy();
+		s.raw = 8;
+		s.freeSlots = 20;
+		assertEquals("Opener is 9", Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
+		s.raw = 9;
+		s.freeSlots = 19;
+		assertEquals(Target.SHRINE, Planner.plan(s, p).getTarget());
+		s.raw = 10;
+		s.cooked = 9;
+		s.freeSlots = 9;
+		assertEquals(Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
+		s.raw = 19;
+		s.freeSlots = 0;
+		assertEquals(Target.SHRINE, Planner.plan(s, p).getTarget());
+		s.raw = 0;
+		s.cooked = 28;
+		assertEquals(Target.CRATE, Planner.plan(s, p).getTarget());
+		Snapshot m = energy();
+		m.raw = 8;
+		m.freeSlots = 20;
+		assertEquals(Target.SHRINE, Planner.plan(m, style(PlayStyle.MAX_POINTS)).getTarget());
+	}
+
+	@Test
 	public void xpStyleNeverCooks()
 	{
 		Snapshot s = energy();

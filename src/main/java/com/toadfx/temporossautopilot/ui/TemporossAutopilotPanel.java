@@ -46,6 +46,7 @@ public class TemporossAutopilotPanel extends PluginPanel
 	private static final int HISTORY_ROWS = 8;
 
 	private final TemporossAutopilotPlugin plugin;
+	private final TemporossAutopilotConfig config;
 	private final ConfigManager configManager;
 
 	private final JComboBox<PlayStyle> styleBox = new JComboBox<>(PlayStyle.values());
@@ -65,6 +66,7 @@ public class TemporossAutopilotPanel extends PluginPanel
 	{
 		super(true);
 		this.plugin = plugin;
+		this.config = config;
 		this.configManager = configManager;
 
 		setLayout(new BorderLayout());
@@ -188,7 +190,7 @@ public class TemporossAutopilotPanel extends PluginPanel
 		else
 		{
 			stepTitle.setText(step.getTitle());
-			stepTitle.setForeground(step.getUrgency() == Urgency.NOW ? NOW : step.getUrgency() == Urgency.SOON ? GOLD : ACCENT);
+			stepTitle.setForeground(step.getUrgency() == Urgency.NOW ? config.urgentColor() : step.getUrgency() == Urgency.SOON ? GOLD : config.targetColor());
 			String then = "";
 			for (Instruction next : plugin.getUpcoming())
 			{

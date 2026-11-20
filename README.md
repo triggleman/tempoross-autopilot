@@ -14,11 +14,11 @@ highlights and your post-game grade all follow it.
 
 | Style | Cooking | What Autopilot does | Graded on |
 |---|---|---|---|
-| **Max permits / hr** (default) | Yes | Load as soon as you have fish, finish him fast, leave right away | permits per hour |
-| **Max points / game** | Always | Cook everything, douse fires, fix masts, counts down to your points target | points per game |
-| **Max Fishing XP** | Never | Double spots first, then the spirit pool; loads raw only when the bag is full | Fishing XP per hour |
+| **Max permits / hr** (default) | Opener, then full bag | Theoatrix's mass run: catch 9 at the nearest spot and cook them, fill up at a double spot, cook it all, load a full bag, fish until he's down, then the spirit pool. Leave right away after the win | permits per hour |
+| **Max points / game** | Opener, then full bag | Theoatrix's max points: catch about 8 and cook them while you wait for a double spot, fill up there, load a full bag; also douses fires and fixes masts, counting down to your points target | points per game |
+| **Max Fishing XP** | Never | Theoatrix's XP setup (crystal harpoon, spirit angler outfit, Imcando hammer): double spots first, then the spirit pool; loads raw only when the bag is full | Fishing XP per hour |
 | **Balanced XP + permits** | In batches | The wiki cooking method: catch 7 (9 at 85+), cook, start loading at 49% energy | XP and permits |
-| **Firefighter** | Yes | Puts out every fire and repairs every mast (40 points each) | points per game |
+| **Firefighter** | Yes | Puts out every fire and repairs every mast (40 points each); Humidify keeps your buckets full | points per game |
 | **Chill: one permit** | No | Gets you to 2,000 points, then tells you you're safe | reaching 2,000 |
 | **Custom** | Your choice | Your own cooking rule and points target | your target |
 
@@ -49,7 +49,7 @@ highlights and your post-game grade all follow it.
 - **Gear reminders**: remembers the harpoons and angler / spirit angler pieces you own (from your
   bank, inventory and worn items) and reminds you to bring them: your best harpoon for your play style
   (infernal for points, crystal for Fishing XP, dragon for its +3 special) and the outfit
-  (the full set gives +2.5% Fishing XP). You also get one chat reminder when you reach the Ruins of Unkah.
+  (the full set gives +2.5% Fishing XP), plus the Imcando hammer, which waves and fires can't take. You also get one chat reminder when you reach the Ruins of Unkah.
 - **Alerts**: wave incoming (when you aren't tethered), double spot, storm warning, load target
   reached, new permit.
 - **Post-game report card**: S to D grade for your play style, a points breakdown (loading,
@@ -68,10 +68,15 @@ highlights and your post-game grade all follow it.
 | Alerts | Each alert on or off, storm warning level |
 | Report card | Chat summary, save history, reset history |
 
+## Colours
+
+Defaults: next step magenta `#FF00F1`, double spot orange `#FF7300`, urgent red `#FF1E1E`. All can be changed in Colours.
+
 ## Credits
 
 Strategy, points and permit numbers come from the
-[OSRS Wiki Tempoross pages](https://oldschool.runescape.wiki/w/Tempoross/Strategies).
+[OSRS Wiki Tempoross pages](https://oldschool.runescape.wiki/w/Tempoross/Strategies). The mass-world run
+and the max points and XP setups follow [Theoatrix's Tempoross guide](https://www.theoatrix.net/post/osrs-tempoross-guide-1).
 Game IDs come from RuneLite's gameval API. See [NOTICE](NOTICE).
 
 Tempoross Autopilot never clicks or plays for you. It only shows information, highlights and

@@ -9,6 +9,8 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm bar with danger mark and time left, scene highlights,
   crate load counter.
+- Max permits and Max points follow Theoatrix's mass run (opener of 9, or 8 for max points, then a full bag). Imcando hammer reminder.
+- New default colours: next step #FF00F1, double spot #FF7300, urgent #FF1E1E.
 - Top instructions box: now, timer, storm bar, coming-up timers and the next two steps (replaces the top-left box, which is now optional).
 - Game timer; lightning, fire-spread and wave timers on the tiles, masts and totem poles.
 - Heads you to the spirit pool when energy hits 0. Double spots are pink by default.

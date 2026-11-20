@@ -210,17 +210,17 @@ public interface TemporossAutopilotConfig extends Config
 	// ------------------------------------------------------------------ colours
 
 	@Alpha
-	@ConfigItem(keyName = "targetColor", name = "Target", position = 0, section = colourSection, description = "Next target outline")
+	@ConfigItem(keyName = "targetColor", name = "Target", position = 0, section = colourSection, description = "Next step: the outline on what to do next and the step text")
 	default Color targetColor()
 	{
-		return new Color(79, 195, 207);
+		return new Color(255, 0, 241);
 	}
 
 	@Alpha
 	@ConfigItem(keyName = "doubleColor", name = "Double spot", position = 1, section = colourSection, description = "Double spot outline")
 	default Color doubleColor()
 	{
-		return new Color(255, 105, 180);
+		return new Color(255, 115, 0);
 	}
 
 	@Alpha
@@ -234,7 +234,7 @@ public interface TemporossAutopilotConfig extends Config
 	@ConfigItem(keyName = "urgentColor", name = "Urgent", position = 3, section = colourSection, description = "Colour for urgent steps (waves, storm)")
 	default Color urgentColor()
 	{
-		return new Color(255, 80, 60);
+		return new Color(255, 30, 30);
 	}
 
 	// ------------------------------------------------------------------ alerts

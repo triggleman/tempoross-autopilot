@@ -38,6 +38,8 @@ public class Snapshot
 	public boolean[] ownsAngler = new boolean[4];
 	public boolean[] wearsSpirit = new boolean[4];
 	public boolean[] wearsAngler = new boolean[4];
+	public boolean ownsImcando;
+	public boolean carriesImcando;
 
 	// Scene
 	public boolean waveIncoming;
@@ -73,6 +75,7 @@ public class Snapshot
 		c.ownedHarpoons = ownedHarpoons.isEmpty() ? EnumSet.noneOf(Harpoon.class) : EnumSet.copyOf(ownedHarpoons);
 		c.ownsSpirit = ownsSpirit.clone(); c.ownsAngler = ownsAngler.clone();
 		c.wearsSpirit = wearsSpirit.clone(); c.wearsAngler = wearsAngler.clone();
+		c.ownsImcando = ownsImcando; c.carriesImcando = carriesImcando;
 		c.waveIncoming = waveIncoming; c.tethered = tethered; c.doubleSpot = doubleSpot;
 		c.spiritPool = spiritPool; c.poolInactive = poolInactive;
 		c.fireDistance = fireDistance; c.damagedTetherDistance = damagedTetherDistance;

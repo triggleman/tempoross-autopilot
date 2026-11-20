@@ -96,6 +96,11 @@ public final class Planner
 			{
 				return better;
 			}
+			Instruction hammer = imcando(s);
+			if (hammer != null)
+			{
+				return hammer;
+			}
 			Instruction outfit = outfit(s);
 			if (outfit != null)
 			{
@@ -103,6 +108,16 @@ public final class Planner
 			}
 		}
 		return null;
+	}
+
+	/** A reminder to bring the Imcando hammer if you own it and didn't bring it, or null. */
+	static Instruction imcando(Snapshot s)
+	{
+		if (!s.ownsImcando || s.carriesImcando)
+		{
+			return null;
+		}
+		return Instruction.of("Bring your Imcando hammer", "Waves and fires can't take it, and it goes in your off-hand.", Target.NONE);
 	}
 
 	// --------------------------------------------------------------------- your own gear
@@ -196,6 +211,10 @@ public final class Planner
 		{
 			out.add(h.getTitle().replace("Bring your ", "your "));
 		}
+		if (imcando(s) != null)
+		{
+			out.add("your Imcando hammer");
+		}
 		Instruction o = outfit(s);
 		if (o != null)
 		{
@@ -222,9 +241,11 @@ public final class Planner
 			case CHILL:
 				return "Aim for 2,000 points, then take it easy.";
 			case FIREFIGHTER:
-				return "Fish and cook, and put out every fire you can.";
+				return "Fish and cook, and put out every fire you can. Humidify refills buckets.";
 			case MAX_POINTS:
-				return "Cook everything and aim for " + String.format("%,d", set.pointsTarget) + " points.";
+				return "Catch 8 and cook them while you wait for a double spot. Aim for " + String.format("%,d", set.pointsTarget) + " points.";
+			case MAX_PERMITS:
+				return "Catch 9 at the nearest spot and cook them, then fill up at a double spot.";
 			default:
 				return set.mode == GameMode.MASS ? "Head for a fishing spot when the game starts." : "Start fishing as soon as you land.";
 		}
@@ -455,6 +476,11 @@ public final class Planner
 		if (cook == CookRule.BATCH)
 		{
 			return PlannerSettings.batchSize(s.fishingLevel);
+		}
+		if (cook == CookRule.OPENER_THEN_FULL_BAG)
+		{
+			// Opening batch while waiting for a double; after that, only a full bag gets cooked.
+			return s.cooked + s.crystal == 0 ? set.style.openingBatch() : Integer.MAX_VALUE;
 		}
 		// Always-cook styles: cook in batches too, so you aren't walking back after every fish.
 		return PlannerSettings.batchSize(s.fishingLevel);

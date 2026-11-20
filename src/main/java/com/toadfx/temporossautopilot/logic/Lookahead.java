@@ -68,6 +68,10 @@ public final class Lookahead
 				{
 					want = s.freeSlots;
 				}
+				else if (cook == CookRule.OPENER_THEN_FULL_BAG)
+				{
+					want = s.cooked + s.crystal == 0 ? Math.max(1, set.style.openingBatch() - s.raw) : s.freeSlots;
+				}
 				else
 				{
 					want = Math.max(1, PlannerSettings.batchSize(s.fishingLevel) - s.raw);

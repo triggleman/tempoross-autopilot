@@ -6,11 +6,11 @@ package com.toadfx.temporossautopilot.model;
  */
 public enum PlayStyle
 {
-	MAX_PERMITS("Max permits / hr", "Fast games, more rewards per hour", CookRule.ALWAYS, "permits per hour"),
-	MAX_POINTS("Max points / game", "Long rounds, most permits per game", CookRule.ALWAYS, "points per game"),
-	MAX_XP("Max Fishing XP", "Never cook, just fish", CookRule.NEVER, "Fishing XP per hour"),
-	BALANCED("Balanced XP + permits", "The wiki cooking method", CookRule.BATCH, "XP and permits together"),
-	FIREFIGHTER("Firefighter", "Douse and repair for bonus points", CookRule.ALWAYS, "points per game"),
+	MAX_PERMITS("Max permits / hr", "Theoatrix mass run: catch 9, cook, fill up at doubles, load a full bag", CookRule.OPENER_THEN_FULL_BAG, "permits per hour"),
+	MAX_POINTS("Max points / game", "Theoatrix max points: catch 8, cook while you wait for a double, fill up there", CookRule.OPENER_THEN_FULL_BAG, "points per game"),
+	MAX_XP("Max Fishing XP", "Theoatrix XP: never cook, crystal harpoon, spirit angler outfit", CookRule.NEVER, "Fishing XP per hour"),
+	BALANCED("Balanced XP + permits", "The wiki cooking method: 7 at a time (9 at 85+)", CookRule.BATCH, "XP and permits together"),
+	FIREFIGHTER("Firefighter", "Douse fires and fix masts for 40 points each (Humidify helps)", CookRule.ALWAYS, "points per game"),
 	CHILL("Chill: one permit", "Least clicking for 1 reward", CookRule.NEVER, "reaching 2,000 points"),
 	CUSTOM("Custom", "Your own rules from settings", CookRule.ALWAYS, "your points target");
 
@@ -46,6 +46,12 @@ public enum PlayStyle
 	public String getGradedOn()
 	{
 		return gradedOn;
+	}
+
+	/** Fish to catch and cook first, before filling the bag (Theoatrix: 9 on mass worlds, about 8 for max points). */
+	public int openingBatch()
+	{
+		return this == MAX_POINTS ? 8 : 9;
 	}
 
 	/** Styles that go out of their way to douse fires and repair masts and totems. */

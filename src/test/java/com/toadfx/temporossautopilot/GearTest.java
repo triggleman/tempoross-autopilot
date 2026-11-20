@@ -100,6 +100,16 @@ public class GearTest
 	}
 
 	@Test
+	public void remindsImcandoHammer()
+	{
+		Snapshot s = boat();
+		s.ownsImcando = true;
+		assertEquals("Bring your Imcando hammer", Planner.plan(s, style(PlayStyle.MAX_POINTS)).getTitle());
+		s.carriesImcando = true;
+		assertEquals("Ready", Planner.plan(s, style(PlayStyle.MAX_POINTS)).getTitle());
+	}
+
+	@Test
 	public void remindersCanBeTurnedOff()
 	{
 		Snapshot s = boat();

@@ -8,7 +8,12 @@ public enum CookRule
 	/** Never cook: fish and load raw. */
 	NEVER("Never"),
 	/** The wiki cooking method: catch a batch (7, or 9 at 85+ Fishing), then cook it. */
-	BATCH("In batches");
+	BATCH("In batches"),
+	/**
+	 * Theoatrix's way: cook an opening batch (8-9 fish) while waiting for a double spot, then fill
+	 * the bag (at doubles when you can), cook it all and load a full bag of cooked fish.
+	 */
+	OPENER_THEN_FULL_BAG("Opener, then full bag");
 
 	private final String label;
 
