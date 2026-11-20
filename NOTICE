@@ -1,0 +1,18 @@
+Tempoross Autopilot
+Made by ToadFx
+
+Old School RuneScape Wiki
+-------------------------
+https://oldschool.runescape.wiki/w/Tempoross
+https://oldschool.runescape.wiki/w/Tempoross/Strategies
+Points per action, permit thresholds, energy per fish, the cooking-method batch sizes, the 93%
+storm rule and the solo load routes come from the wiki's Tempoross pages.
+
+RuneLite
+--------
+https://github.com/runelite/runelite
+Game IDs (objects, NPCs, items, varbits, interfaces) come from RuneLite's gameval API.
+No code from other Plugin Hub plugins is included; Tempoross Autopilot is written from scratch.
+
+Old School RuneScape and RuneScape are trademarks of Jagex Ltd. This plugin is not affiliated
+with or endorsed by Jagex.
