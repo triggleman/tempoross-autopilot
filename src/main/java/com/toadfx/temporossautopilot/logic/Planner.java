@@ -805,7 +805,7 @@ public final class Planner
 			{
 				return Instruction.of("Load the cannon", "Load the other " + left + "." + skip, Target.CRATE);
 			}
-			return gather(s, set, cook, left, leg.noDoubles, "for the rest of this load." + skip);
+			return gather(s, set, cook, left, leg.noDoubles, false, "for the rest of this load." + skip);
 		}
 
 		// Before the leg: chores, room, then catch and cook enough.
@@ -836,7 +836,7 @@ public final class Planner
 		boolean ready = loadable >= leg.gather || s.bagFull() && (cook == CookRule.NEVER || s.raw == 0) && loadable > 0;
 		if (!ready)
 		{
-			return gather(s, set, cook, leg.gather, leg.noDoubles, "before you load." + skip);
+			return gather(s, set, cook, leg.gather, leg.noDoubles, leg.cookOpener, "before you load." + skip);
 		}
 		if (leg.afterResurface && poolPhase)
 		{
@@ -926,7 +926,7 @@ public final class Planner
 			{
 				return Instruction.of("Drop your fish at cannon 1", "Don't load them: drop all " + cooked + " on the ground next to the cannon, then run back and fish 16.", Target.CRATE);
 			}
-			return gather(s, set, cook, drop, false, "then drop them at cannon 1.");
+			return gather(s, set, cook, drop, false, false, "then drop them at cannon 1.");
 		}
 		if (done < second)
 		{
@@ -936,7 +936,7 @@ public final class Planner
 					? Instruction.of("Load cannon 2", "Load all " + (second - done) + " here. Your dropped fish wait at cannon 1.", Target.CRATE)
 					: Instruction.of("Load cannon 2", "Load your " + (second - done) + " into the other cannon, not the one your fish are by.", Target.OTHER_CRATE);
 			}
-			return gather(s, set, cook, second - done, false, "then load them into cannon 2.");
+			return gather(s, set, cook, second - done, false, false, "then load them into cannon 2.");
 		}
 		int left = leg.fish - done;
 		if (s.groundFish > 0 && cooked < left)
@@ -947,17 +947,17 @@ public final class Planner
 		{
 			return Instruction.of("Load cannon 1", "Load all " + Math.min(cooked, left) + " you picked up, straight away, no matter what. Then the spirit pool.", Target.DROP_CRATE);
 		}
-		return gather(s, set, cook, left, false, "to finish the load.");
+		return gather(s, set, cook, left, false, false, "to finish the load.");
 	}
 
 	/** Catch (and cook) until you hold {@code need} fish ready to load. */
-	private static Instruction gather(Snapshot s, PlannerSettings set, CookRule cook, int need, boolean noDoubles, String why)
+	private static Instruction gather(Snapshot s, PlannerSettings set, CookRule cook, int need, boolean noDoubles, boolean cookOpener, String why)
 	{
 		int ready = loadable(s, cook);
 		if (cook != CookRule.NEVER && s.raw > 0)
 		{
 			boolean enough = ready + s.raw >= need;
-			boolean opener = ready == 0 && s.raw >= PlannerSettings.batchSize(s.fishingLevel) && (!s.doubleSpot || noDoubles);
+			boolean opener = cookOpener && ready == 0 && s.raw >= PlannerSettings.batchSize(s.fishingLevel) && (!s.doubleSpot || noDoubles);
 			if (enough || s.bagFull() || opener)
 			{
 				return Instruction.of("Cook at the shrine", "Cook your " + s.raw + " raw. " + Math.min(need, ready + s.raw) + " / " + need + " " + why, Target.SHRINE);

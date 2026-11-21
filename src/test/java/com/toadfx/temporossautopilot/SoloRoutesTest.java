@@ -239,6 +239,21 @@ public class SoloRoutesTest
 	}
 
 	@Test
+	public void tenPermitsCatchAll16BeforeCooking()
+	{
+		PlannerSettings p = solo(PlayStyle.SOLO_TEN_PERMITS);
+		Snapshot s = up();
+		s.raw = 12;
+		s.freeSlots = 7;
+		Instruction i = Planner.plan(s, p);
+		assertEquals(Target.FISHING_SPOT, i.getTarget());
+		assertTrue(i.getDetail().contains("12 / 16"));
+		s.raw = 16;
+		s.freeSlots = 3;
+		assertEquals("Cook at the shrine", Planner.plan(s, p).getTitle());
+	}
+
+	@Test
 	public void tenPermitsStormSalvage()
 	{
 		// Storm at 93% before the full bag is cooked: load the cooked ones now (never raw).

@@ -9,6 +9,7 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
+- Solo routes: catch the whole count (16, 19...) before cooking; only Solo 5 rounds cooks a first batch of 7-10.
 - Solo routes: finish the whole load before going to the spirit pool, even if Tempoross goes under part way through.
 - Solo routes rebuilt from the wiki step lists, counting loads over the whole game: Recommended solo and Solo max permits now load 17 then 19 before the first pool (they used to stop at 17). Solo 5 rounds follows the wiki step by step (18 + pause + the rest, 9 or 10 + pause + 17, no pool after round 2, load 1, then 5 and 13 in two crates, keep 9, catch 9 more). New style Solo 10 permits, following Jagd's video: 16 (to 10% energy), put the fires out, full bag before 93%, pool to 60%, full bag, pool to 33%, full bag dropped at cannon 1, 16 into cannon 2, pick up, load cannon 1; 7 buckets. Fish dropped next to a crate no longer count as loaded.
 - Double spots and fishing spots are picked by walking time, like the spirit pool: a double across the water (a long walk round) is ignored, and only doubles within about 40 tiles of walking count.

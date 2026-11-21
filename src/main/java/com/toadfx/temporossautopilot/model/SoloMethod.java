@@ -22,7 +22,7 @@ public enum SoloMethod
 	 */
 	FIVE_ROUNDS("5 rounds (26 / 26 / 1 / 18 / 18)",
 		new Leg[]{
-			Leg.of(26).chunk(18),
+			Leg.of(26).chunk(18).cookOpener(),
 			Leg.of(26).chunk(Leg.CHUNK_9_OR_10),
 			Leg.of(1).gather(28).dropBuckets(),
 			Leg.of(18).split(5).afterSubmerge().staysUp(),
@@ -78,6 +78,8 @@ public enum SoloMethod
 		public boolean dropTrick;
 		/** Fish dropped at cannon 1 in the drop trick. */
 		public int dropCount;
+		/** Cook a first batch of 7-10 before the bag is full (wiki 5-round round 1); otherwise catch the whole count, then cook. */
+		public boolean cookOpener;
 		/** Put out the fires before this leg (no waves at 10% energy, so fires stay and spread). */
 		public boolean clearFires;
 
@@ -145,6 +147,12 @@ public enum SoloMethod
 			dropTrick = true;
 			dropCount = drop;
 			gather = drop;
+			return this;
+		}
+
+		Leg cookOpener()
+		{
+			cookOpener = true;
 			return this;
 		}
 
