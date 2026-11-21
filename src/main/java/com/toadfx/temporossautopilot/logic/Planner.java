@@ -733,8 +733,19 @@ public final class Planner
 		SoloMethod m = set.soloMethod;
 		int li = m.legIndex(s.loadedTotal);
 		boolean poolPhase = s.phase == Phase.ESSENCE || s.spiritPool && s.energy == 0;
+		CookRule cook = set.cookRule();
+		int loadable = loadable(s, cook);
 
-		if (poolPhase)
+		// Tempoross often goes under part way through a load: finish the whole load first,
+		// then go to the pool (Todd: "load the 19 entirely before heading towards the spirit pool").
+		boolean finishing = false;
+		if (poolPhase && li < m.legCount())
+		{
+			SoloMethod.Leg cur = m.leg(li);
+			int curDone = s.loadedTotal - m.start(li);
+			finishing = curDone > 0 && curDone < cur.fish && (cur.dropTrick || loadable > 0);
+		}
+		if (poolPhase && !finishing)
 		{
 			Instruction pool = soloPool(s, m.poolAfter(li), li >= m.legCount());
 			if (pool != null)
@@ -744,17 +755,16 @@ public final class Planner
 		}
 		if (li >= m.legCount())
 		{
-			return Instruction.soon("Head to the spirit pool", "Everything's loaded. Finish Tempoross at the pool.", Target.SPIRIT_POOL);
+			return Instruction.soon("Head to the spirit pool", "Everything's loaded. Wait for the pool to open, then finish Tempoross off.", Target.SPIRIT_POOL);
 		}
 
 		SoloMethod.Leg leg = m.leg(li);
-		CookRule cook = set.cookRule();
 		int done = s.loadedTotal - m.start(li);
 		int left = leg.fish - done;
-		int loadable = loadable(s, cook);
 		SoloMethod.PoolRule rule = m.poolAfter(li);
 		boolean wentToPool = rule.leaveAt > 0 && rule.leaveAt <= 100 && (rule.onlyIfAbove < 0 || s.poolOpenEssence > rule.onlyIfAbove);
-		String skip = !poolPhase ? "" : wentToPool ? (s.fish() == 0 ? " Leave the pool now." : "") : " Skip the spirit pool.";
+		String skip = !poolPhase ? "" : finishing ? " Finish the load, then the spirit pool."
+			: wentToPool ? (s.fish() == 0 ? " Leave the pool now." : "") : " Skip the spirit pool.";
 
 		// Race the storm (not while holding a split or drop-trick load: those go in a set order).
 		if (loadable > 0 && stormDanger(s, set) && !leg.dropTrick && leg.split == 0)
@@ -854,7 +864,8 @@ public final class Planner
 			return Instruction.of("Load the cannon", "Load your " + loadable + ", then catch " + (left - loadable) + " more to make " + left + "." + skip, Target.CRATE);
 		}
 		boolean keep = loadable > left;
-		return Instruction.of("Load the cannon", "Load exactly " + left + (keep ? " and keep the other " + (loadable - left) : "") + "." + skip, Target.CRATE);
+		String thenPool = leg.submerges && !poolPhase ? " Load all of them before you go to the spirit pool." : "";
+		return Instruction.of("Load the cannon", "Load exactly " + left + (keep ? " and keep the other " + (loadable - left) : "") + "." + thenPool + skip, Target.CRATE);
 	}
 
 	/** The spirit pool for a solo route, or null to get on with the next leg. */
@@ -863,7 +874,7 @@ public final class Planner
 		if (finish || rule.leaveAt == 0)
 		{
 			return !s.spiritPool
-				? Instruction.soon("Head to the spirit pool", "Finish Tempoross off.", Target.SPIRIT_POOL)
+				? Instruction.soon("Head to the spirit pool", "Wait for it to open, then finish Tempoross off.", Target.SPIRIT_POOL)
 				: Instruction.of("Attack the spirit pool", "Finish him: stay until Tempoross is subdued.", Target.SPIRIT_POOL);
 		}
 		if (rule.leaveAt > 100)
@@ -913,7 +924,7 @@ public final class Planner
 		{
 			if (cooked >= drop || cooked > 0 && s.raw == 0 && s.bagFull())
 			{
-				return Instruction.of("Drop your fish at cannon 1", "Cook done: drop all " + cooked + " on the ground next to a cannon. Don't load them.", Target.CRATE);
+				return Instruction.of("Drop your fish at cannon 1", "Don't load them: drop all " + cooked + " on the ground next to the cannon, then run back and fish 16.", Target.CRATE);
 			}
 			return gather(s, set, cook, drop, false, "then drop them at cannon 1.");
 		}
@@ -922,7 +933,7 @@ public final class Planner
 			if (cooked >= second - done || done > 0 && cooked > 0)
 			{
 				return s.nearCrate && !s.atDropCrate
-					? Instruction.of("Load cannon 2", "Load " + (second - done) + " here. Your dropped fish wait at cannon 1.", Target.CRATE)
+					? Instruction.of("Load cannon 2", "Load all " + (second - done) + " here. Your dropped fish wait at cannon 1.", Target.CRATE)
 					: Instruction.of("Load cannon 2", "Load your " + (second - done) + " into the other cannon, not the one your fish are by.", Target.OTHER_CRATE);
 			}
 			return gather(s, set, cook, second - done, false, "then load them into cannon 2.");
@@ -930,11 +941,11 @@ public final class Planner
 		int left = leg.fish - done;
 		if (s.groundFish > 0 && cooked < left)
 		{
-			return Instruction.of("Pick up your fish", "Grab the " + s.groundFish + " at cannon 1.", Target.DROP_CRATE);
+			return Instruction.of("Pick up your fish", "Quickly grab the " + s.groundFish + " at cannon 1.", Target.DROP_CRATE);
 		}
 		if (cooked > 0)
 		{
-			return Instruction.of("Load cannon 1", "Load the " + Math.min(cooked, left) + " you picked up.", Target.DROP_CRATE);
+			return Instruction.of("Load cannon 1", "Load all " + Math.min(cooked, left) + " you picked up, straight away, no matter what. Then the spirit pool.", Target.DROP_CRATE);
 		}
 		return gather(s, set, cook, left, false, "to finish the load.");
 	}

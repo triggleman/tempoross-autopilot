@@ -210,10 +210,32 @@ public class SoloRoutesTest
 		assertTrue(Planner.plan(s, p).getDetail().contains("60%"));
 		s.essence = 59;
 		assertEquals(Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
-		// After the next full bag: pool to ~30%.
+		// After the next full bag: pool to 33%.
 		s.loadedTotal = 54;
 		s.essence = 45;
-		assertTrue(Planner.plan(s, p).getDetail().contains("30%"));
+		assertTrue(Planner.plan(s, p).getDetail().contains("33%"));
+	}
+
+	@Test
+	public void finishTheLoadBeforeThePool()
+	{
+		// Tempoross goes under after a few of the 19: keep loading, then the pool.
+		PlannerSettings p = solo(PlayStyle.SOLO_TEN_PERMITS);
+		Snapshot s = under(up());
+		s.loadedTotal = 20;
+		s.cooked = 15;
+		s.freeSlots = 4;
+		s.essence = 100;
+		Instruction load = Planner.plan(s, p);
+		assertEquals(Target.CRATE, load.getTarget());
+		assertTrue(load.getDetail().contains("Finish the load"));
+		s.loadedTotal = 35;
+		s.cooked = 0;
+		assertTrue(Planner.plan(s, p).getDetail().contains("60%"));
+		// Storm salvage: only raw left, so pool first and load the rest after.
+		s.loadedTotal = 28;
+		s.raw = 7;
+		assertEquals(Target.SPIRIT_POOL, Planner.plan(s, p).getTarget());
 	}
 
 	@Test
