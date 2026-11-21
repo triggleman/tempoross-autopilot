@@ -336,7 +336,7 @@ public final class Planner
 			case SOLO_XP:
 				return "Solo-start from the rope ladder. First load: " + set.soloMethod.firstLoad() + " fish.";
 			case SOLO_TEN_PERMITS:
-				return "Solo-start from the rope ladder. Catch and cook 17, load them, then 19 more.";
+				return "Solo-start from the rope ladder. Catch and cook 16 and load them: Tempoross drops to 10% energy.";
 			case MAX_PERMITS:
 				return "Cook 7 at a time (9 at 85+ Fishing) and start loading at 49% energy.";
 			default:
@@ -719,6 +719,8 @@ public final class Planner
 
 	// --------------------------------------------------------------------- solo routes (OSRS Wiki)
 
+	/** Fires this close get put out before a clearFires leg. */
+	static final int CLEAR_FIRES_RANGE = 15;
 	/** Pause this long after the first part of a split load (wiki: "wait a second"). */
 	static final int PAUSE_MS = 2400;
 
@@ -752,7 +754,7 @@ public final class Planner
 		int loadable = loadable(s, cook);
 		SoloMethod.PoolRule rule = m.poolAfter(li);
 		boolean wentToPool = rule.leaveAt > 0 && rule.leaveAt <= 100 && (rule.onlyIfAbove < 0 || s.poolOpenEssence > rule.onlyIfAbove);
-		String skip = !poolPhase ? "" : wentToPool ? " Leave the pool now." : " Skip the spirit pool.";
+		String skip = !poolPhase ? "" : wentToPool ? (s.fish() == 0 ? " Leave the pool now." : "") : " Skip the spirit pool.";
 
 		// Race the storm (not while holding a split or drop-trick load: those go in a set order).
 		if (loadable > 0 && stormDanger(s, set) && !leg.dropTrick && leg.split == 0)
@@ -797,6 +799,17 @@ public final class Planner
 		}
 
 		// Before the leg: chores, room, then catch and cook enough.
+		if (leg.clearFires && s.fireDistance >= 0 && s.fireDistance <= CLEAR_FIRES_RANGE)
+		{
+			if (s.waterBuckets > 0)
+			{
+				return Instruction.of("Put out the fires", "No waves at 10% energy, so fires stay and spread. Clear them now (+40 each).", Target.FIRE);
+			}
+			if (s.emptyBuckets > 0)
+			{
+				return Instruction.of("Fill your buckets", "Then put out the fires before they spread.", Target.WATER_PUMP);
+			}
+		}
 		if (set.style.fightsFires())
 		{
 			Instruction chore = chore(s);
@@ -888,41 +901,40 @@ public final class Planner
 	}
 
 	/**
-	 * Wiki 10 permits finish: catch and cook 19, drop them by a cannon, catch and cook 19 more,
-	 * load them into one cannon, pick up the dropped 19 and load the other cannon.
+	 * Jagd's finish: catch and cook a full bag, drop it at cannon 1, catch and cook 16, load
+	 * them into cannon 2, then pick the dropped fish up and load cannon 1.
 	 */
 	private static Instruction dropTrick(Snapshot s, PlannerSettings set, SoloMethod.Leg leg, int done, CookRule cook)
 	{
-		int half = leg.fish / 2;
+		int drop = leg.dropCount;
+		int second = leg.secondBatch();
 		int cooked = loadable(s, cook);
-		if (done == 0 && s.groundFish < half)
+		if (done == 0 && s.groundFish < drop)
 		{
-			if (cooked >= half && s.raw == 0)
+			if (cooked >= drop || cooked > 0 && s.raw == 0 && s.bagFull())
 			{
-				return Instruction.of("Drop " + half + " fish by a cannon", "Drop all " + half + " on the ground next to a cannon. Don't load them yet.", Target.CRATE);
+				return Instruction.of("Drop your fish at cannon 1", "Cook done: drop all " + cooked + " on the ground next to a cannon. Don't load them.", Target.CRATE);
 			}
-			return gather(s, set, cook, half, false, "then drop them by a cannon.");
+			return gather(s, set, cook, drop, false, "then drop them at cannon 1.");
 		}
-		if (done < half)
+		if (done < second)
 		{
-			if (cooked >= half - done || done > 0 && cooked > 0)
+			if (cooked >= second - done || done > 0 && cooked > 0)
 			{
-				return Instruction.of("Load one cannon", "Load " + (half - done) + " into this cannon. Your dropped fish stay on the ground.", Target.CRATE);
+				return s.nearCrate && !s.atDropCrate
+					? Instruction.of("Load cannon 2", "Load " + (second - done) + " here. Your dropped fish wait at cannon 1.", Target.CRATE)
+					: Instruction.of("Load cannon 2", "Load your " + (second - done) + " into the other cannon, not the one your fish are by.", Target.OTHER_CRATE);
 			}
-			return gather(s, set, cook, half - done, false, "then load them into one cannon.");
+			return gather(s, set, cook, second - done, false, "then load them into cannon 2.");
 		}
 		int left = leg.fish - done;
 		if (s.groundFish > 0 && cooked < left)
 		{
-			return Instruction.of("Pick up your fish", "Pick up the " + s.groundFish + " you dropped.", Target.CRATE);
+			return Instruction.of("Pick up your fish", "Grab the " + s.groundFish + " at cannon 1.", Target.DROP_CRATE);
 		}
 		if (cooked > 0)
 		{
-			if (s.nearCrate && !s.atFirstCrate)
-			{
-				return Instruction.of("Load this cannon", "Load the other " + left + " here.", Target.CRATE);
-			}
-			return Instruction.of("Load the other cannon", "Load the " + left + " you picked up into the other cannon.", Target.OTHER_CRATE);
+			return Instruction.of("Load cannon 1", "Load the " + Math.min(cooked, left) + " you picked up.", Target.DROP_CRATE);
 		}
 		return gather(s, set, cook, left, false, "to finish the load.");
 	}

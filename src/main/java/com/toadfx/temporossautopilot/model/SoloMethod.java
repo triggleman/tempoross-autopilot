@@ -29,10 +29,16 @@ public enum SoloMethod
 			Leg.of(18).split(5).noDoubles().afterResurface()},
 		new PoolRule[]{PoolRule.ATTACK, PoolRule.SKIP_UNLESS_60, PoolRule.SKIP, PoolRule.SKIP, PoolRule.FINISH}),
 
-	/** Wiki 10 permits route: 17, 19, pool to ~50%, 19, pool to ~30%, then 19 dropped + 19 into two cannons. */
-	TEN_PERMITS("10 permits (17 / 19 / 19 / 19 + 19)",
-		new Leg[]{Leg.of(17).staysUp(), Leg.of(19), Leg.of(19), Leg.of(38).dropTrick()},
-		new PoolRule[]{PoolRule.ATTACK, PoolRule.to(50), PoolRule.to(30), PoolRule.FINISH}),
+	/**
+	 * Jagd's 10+ permits route ("How to Solo Tempoross & Get 10+ Permits EVERY Run"): 16 takes
+	 * Tempoross to 10% energy (no waves or lightning), put the fires out, a full bag (19) before
+	 * 93% storm, pool to ~60%, a full bag, pool to ~30%, then a full bag dropped at cannon 1,
+	 * 16 into cannon 2, pick up and load cannon 1, finish. A full bag is 19 with 7 buckets, a
+	 * rope and a hammer (barbarian fishing, or 6 buckets and a harpoon).
+	 */
+	TEN_PERMITS("10 permits, Jagd (16 / 19 / 19 / 19 + 16)",
+		new Leg[]{Leg.of(16).staysUp(), Leg.of(19).clearFires(), Leg.of(19), Leg.of(35).dropTrick(19)},
+		new PoolRule[]{PoolRule.to(60), PoolRule.to(60), PoolRule.to(30), PoolRule.FINISH}),
 
 	/** Wiki cooking + firefighting: 17, 19, pool, 19, pool to under 50%, 2, finish. */
 	FIREFIGHTING("Cooking + firefighting (17 / 19 / 19 / 2)",
@@ -68,8 +74,12 @@ public enum SoloMethod
 		public boolean afterResurface;
 		/** Double spots vanish while he's under: fish normal spots. */
 		public boolean noDoubles;
-		/** Catch half, drop it by a cannon, catch half again, load one cannon, pick up, load the other. */
+		/** Catch {@link #dropCount}, drop them at cannon 1, catch the rest, load cannon 2, pick up, load cannon 1. */
 		public boolean dropTrick;
+		/** Fish dropped at cannon 1 in the drop trick. */
+		public int dropCount;
+		/** Put out the fires before this leg (no waves at 10% energy, so fires stay and spread). */
+		public boolean clearFires;
 
 		private Leg(int fish)
 		{
@@ -130,11 +140,24 @@ public enum SoloMethod
 			return this;
 		}
 
-		Leg dropTrick()
+		Leg dropTrick(int drop)
 		{
 			dropTrick = true;
-			gather = fish / 2;
+			dropCount = drop;
+			gather = drop;
 			return this;
+		}
+
+		Leg clearFires()
+		{
+			clearFires = true;
+			return this;
+		}
+
+		/** Fish loaded into cannon 2 in the drop trick, before picking the dropped ones up. */
+		public int secondBatch()
+		{
+			return fish - dropCount;
 		}
 
 		/** Fish to load before the pause, given the energy Tempoross started the round at. */

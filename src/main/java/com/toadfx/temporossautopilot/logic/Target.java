@@ -11,6 +11,8 @@ public enum Target
 	CRATE,
 	/** The ammunition crate you didn't load into first (split loads). */
 	OTHER_CRATE,
+	/** The ammunition crate your dropped fish are lying by (drop trick, "cannon 1"). */
+	DROP_CRATE,
 	SPIRIT_POOL,
 	TETHER,
 	DAMAGED_TETHER,

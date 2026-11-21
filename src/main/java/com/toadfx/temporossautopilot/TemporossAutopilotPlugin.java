@@ -460,6 +460,9 @@ public class TemporossAutopilotPlugin extends Plugin
 			case OTHER_CRATE:
 				npc = tracker.getOtherCrate();
 				break;
+			case DROP_CRATE:
+				npc = tracker.getDropCrate() != null ? tracker.getDropCrate() : tracker.nearestNpc(tracker.getCrates());
+				break;
 			case SPIRIT_POOL:
 				npc = poolOnYourSide();
 				break;

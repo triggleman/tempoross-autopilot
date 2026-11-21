@@ -46,7 +46,7 @@ public final class Loadout
 			case SOLO_FIVE_ROUNDS:
 				return new Loadout(0, false, 27, "Dragon or barb-tail harpoon (wear it)", "Take about 4 buckets between rounds, up to 10 if fires are near the spots");
 			case SOLO_TEN_PERMITS:
-				return new Loadout(SETTING, false, 19, "Not the crystal harpoon: the wiki says this route doesn't work with it", "Dragon or infernal harpoon");
+				return new Loadout(7, false, 19, "Barbarian fishing, or swap a bucket for a harpoon", "A full bag is 19 fish: 7 buckets + rope + hammer leaves 19 slots");
 			case SOLO_XP:
 				return new Loadout(SETTING, false, 0, "Crystal harpoon (most XP), or dragon", "Elven signet saves crystal harpoon charges");
 			case MAX_XP:

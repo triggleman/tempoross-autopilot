@@ -246,7 +246,9 @@ public final class Lookahead
 			case DOUBLE_SPOT:
 			case FISHING_SPOT:
 			{
-				int need = leg.dropTrick ? leg.fish / 2 : done == 0 ? leg.gather : left;
+				int need = !leg.dropTrick ? (done == 0 ? leg.gather : left)
+					: done == 0 && s.groundFish < leg.dropCount ? leg.dropCount
+					: done < leg.secondBatch() ? leg.secondBatch() - done : left;
 				int want = Math.min(Math.max(1, need - s.fish()), s.freeSlots);
 				if (want <= 0)
 				{
@@ -269,6 +271,7 @@ public final class Lookahead
 				return false;
 			case CRATE:
 			case OTHER_CRATE:
+			case DROP_CRATE:
 			{
 				if (title.equals("Wait a moment"))
 				{
@@ -287,10 +290,10 @@ public final class Lookahead
 				}
 				if (title.startsWith("Drop "))
 				{
-					int half = leg.fish / 2;
-					s.groundFish += half;
-					s.cooked -= Math.min(half, s.cooked);
-					s.freeSlots += half;
+					int dropped = s.cooked;
+					s.groundFish += dropped;
+					s.cooked = 0;
+					s.freeSlots += dropped;
 					return true;
 				}
 				if (title.startsWith("Pick up"))
@@ -310,9 +313,9 @@ public final class Lookahead
 				{
 					n = leg.split - done;
 				}
-				else if (leg.dropTrick && done < leg.fish / 2)
+				else if (leg.dropTrick && done < leg.secondBatch())
 				{
-					n = leg.fish / 2 - done;
+					n = leg.secondBatch() - done;
 				}
 				n = Math.min(n, Planner.loadable(s, cook));
 				if (n <= 0)

@@ -43,7 +43,7 @@ highlights and your post-game grade all follow the style.
 | **Recommended solo** | Solo ★ | The wiki's 17 / 19 / 19 / 27 route: load 17, then 19, pool, 19, pool, 27, finish. It tells you the exact count for each load | permits per hour |
 | **Solo max permits** | Solo | The wiki's cooking + firefighting route: 17, 19, pool, 19, pool to 50%, 2, finish, putting out fires for points; Humidify helps | permits per game |
 | **Solo 5 rounds** | Solo | The wiki's 5-round method (8,500-9,500 points): catch 26, load 18, pause, the rest; pool until he resurfaces; catch 26, load 9 or 10 (by his starting energy), pause, 17; skip the pool; drop buckets, catch 28: load 1, wait for him to go under, 5 in one crate and 13 in the other, keep 9; catch 9 more, load 5 + 13 when he's back up, finish | points per game |
-| **Solo 10 permits** | Solo | The wiki's 10 permits route: 17, 19, pool to about 50%, 19, pool to about 30%, catch 19 and drop them by a cannon, catch 19 more and load one cannon, pick the dropped 19 up and load the other cannon, finish. Not with the crystal harpoon | points per game |
+| **Solo 10 permits** | Solo | Jagd's 10+ permits route ([video](https://www.youtube.com/watch?v=tDr3sBktqcg)): catch and cook 16 and load them (Tempoross drops to 10% energy: no waves or lightning), put the fires out, a full bag (19) before 93% storm, pool to about 60%, a full bag, pool to about 30%, then a full bag dropped at cannon 1, 16 into cannon 2, pick the dropped fish up and load cannon 1, finish. If the storm hits 93% early, load only your cooked fish | points per game |
 | **Solo max Fishing XP** | Solo | The wiki's no-cooking method: 26, then 27 raw a trip | Fishing XP per hour |
 | **Chill: one permit** | Any | Gets you to 2,000 points, then tells you you're safe | reaching 2,000 |
 | **Custom** | Any | Your own cooking rule and points target | your target |
@@ -59,7 +59,7 @@ Every style: your best harpoon, the full spirit angler outfit (it works as a rop
 | Recommended solo | 4 | Humidify runes in a rune pouch; infernal or barb-tail harpoon |
 | Solo max permits | 6 | Humidify runes; 19 free slots; infernal or dragon harpoon; tome of water or steam battlestaff |
 | Solo 5 rounds | 0 to start (about 4 between rounds, up to 10 near fires) | 27 free slots; dragon or barb-tail harpoon, worn |
-| Solo 10 permits | Your setting | 19 free slots; dragon or infernal harpoon (not crystal) |
+| Solo 10 permits | 7 | Rope and hammer, 19 free slots for a full bag; barbarian fishing, or swap a bucket for a harpoon |
 | Solo max Fishing XP | Your setting | Crystal harpoon; elven signet |
 | Firefighter | At least 4 | Humidify runes help |
 | ToadFx duo route | At least 3 | Hammer only if you don't wear the full spirit angler outfit |

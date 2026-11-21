@@ -116,6 +116,8 @@ public class GameTracker
 	/** Your harpoonfish on the ground, and how many were dropped since the last tick. */
 	private final Set<net.runelite.api.TileItem> groundFish = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
 	private int droppedThisTick;
+	/** The crate you dropped fish by (drop trick: "cannon 1"). */
+	private volatile NPC dropCrate;
 	private int roundStartEnergy = -1;
 	private int poolOpenEssence = -1;
 
@@ -496,6 +498,7 @@ public class GameTracker
 		crateLoads.clear();
 		firstCrate = null;
 		groundFish.clear();
+		dropCrate = null;
 		roundStartEnergy = -1;
 		poolOpenEssence = -1;
 		lastLoadMillis = 0;
@@ -769,6 +772,11 @@ public class GameTracker
 		{
 			groundFish.add(item);
 			droppedThisTick += Math.max(1, item.getQuantity());
+			NPC crate = nearestNpc(crates);
+			if (crate != null && crate.getWorldLocation() != null && crate.getWorldLocation().distanceTo(at) <= CRATE_REACH + 2)
+			{
+				dropCrate = crate;
+			}
 		}
 	}
 
@@ -777,10 +785,19 @@ public class GameTracker
 		groundFish.remove(item);
 	}
 
-	/** The crate you didn't load into first this round (for "the other crate"), nearest first. */
+	/** The crate your dropped fish are by, or null. */
+	public NPC getDropCrate()
+	{
+		return dropCrate;
+	}
+
+	/**
+	 * "The other crate": not the one your dropped fish are by (while they're on the ground),
+	 * otherwise not the first one you loaded into this round. Nearest first.
+	 */
 	public NPC getOtherCrate()
 	{
-		NPC first = firstCrate;
+		NPC first = dropCrate != null && !groundFish.isEmpty() ? dropCrate : firstCrate;
 		java.util.List<NPC> others = new java.util.ArrayList<>();
 		for (NPC c : crates)
 		{
@@ -837,6 +854,7 @@ public class GameTracker
 		s.loadedHere = atCrate == null ? 0 : crateLoads.getOrDefault(atCrate, 0);
 		s.atFirstCrate = atCrate != null && atCrate == firstCrate;
 		s.groundFish = groundFish.size();
+		s.atDropCrate = atCrate != null && atCrate == dropCrate;
 		if (phase == Phase.ENERGY && roundStartEnergy < 0 && energy >= 0)
 		{
 			roundStartEnergy = energy;

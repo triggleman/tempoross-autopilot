@@ -68,6 +68,8 @@ public class Snapshot
 	public int loadedHere;
 	/** True if the crate you're at is the first one you loaded into since the round or pool started. */
 	public boolean atFirstCrate;
+	/** True if the crate you're at is the one your dropped fish are by. */
+	public boolean atDropCrate;
 	/** Your harpoonfish lying on the ground (dropped this game). */
 	public int groundFish;
 	/** Tempoross's energy when this round started, or -1. */
@@ -99,7 +101,7 @@ public class Snapshot
 		c.fireDistance = fireDistance; c.damagedTetherDistance = damagedTetherDistance;
 		c.nearCrate = nearCrate; c.cooking = cooking; c.loadedThisRound = loadedThisRound; c.wavesThisRound = wavesThisRound;
 		c.loadedTotal = loadedTotal; c.msSinceLoad = msSinceLoad; c.loadedHere = loadedHere; c.atFirstCrate = atFirstCrate;
-		c.groundFish = groundFish; c.roundStartEnergy = roundStartEnergy; c.poolOpenEssence = poolOpenEssence;
+		c.groundFish = groundFish; c.atDropCrate = atDropCrate; c.roundStartEnergy = roundStartEnergy; c.poolOpenEssence = poolOpenEssence;
 		c.stormSecondsLeft = stormSecondsLeft; c.secondsToCrate = secondsToCrate;
 		return c;
 	}

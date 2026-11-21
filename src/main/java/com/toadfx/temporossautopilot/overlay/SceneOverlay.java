@@ -173,6 +173,8 @@ public class SceneOverlay extends Overlay
 				return "Load here";
 			case OTHER_CRATE:
 				return "Load this crate";
+			case DROP_CRATE:
+				return "Cannon 1";
 			case SHRINE:
 				return "Cook here";
 			case SPIRIT_POOL:

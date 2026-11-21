@@ -60,7 +60,7 @@ public class SoloRoutesTest
 		assertEquals(3, m.legIndex(53));
 		assertEquals(4, m.legIndex(71));
 		assertEquals(5, m.legIndex(89));
-		assertEquals(3, SoloMethod.TEN_PERMITS.legIndex(17 + 19 + 19));
+		assertEquals(3, SoloMethod.TEN_PERMITS.legIndex(16 + 19 + 19));
 	}
 
 	@Test
@@ -184,58 +184,93 @@ public class SoloRoutesTest
 	}
 
 	@Test
-	public void tenPermitsRoute()
+	public void tenPermitsJagdRoute()
 	{
 		PlannerSettings p = solo(PlayStyle.SOLO_TEN_PERMITS);
 		Snapshot s = up();
-		s.cooked = 17;
-		s.freeSlots = 11;
-		assertTrue(Planner.plan(s, p).getDetail().contains("Load exactly 17"));
-		// After 36: pool to 50%, then go fishing.
-		under(s);
-		s.loadedTotal = 36;
+		s.cooked = 16;
+		s.freeSlots = 3;
+		assertTrue(Planner.plan(s, p).getDetail().contains("Load exactly 16"));
+		// 16 in: 10% energy, no waves. Put the fires out, then a full bag.
+		s.loadedTotal = 16;
+		s.energy = 10;
 		s.cooked = 0;
-		s.freeSlots = 28;
-		s.essence = 70;
-		assertTrue(Planner.plan(s, p).getDetail().contains("50%"));
-		s.essence = 49;
+		s.freeSlots = 19;
+		s.waterBuckets = 7;
+		s.fireDistance = 9;
+		assertEquals("Put out the fires", Planner.plan(s, p).getTitle());
+		s.fireDistance = -1;
+		Instruction fish = Planner.plan(s, p);
+		assertEquals(Target.FISHING_SPOT, fish.getTarget());
+		assertTrue(fish.getDetail().contains("/ 19"));
+		// After the full bag: pool to ~60%.
+		under(s);
+		s.loadedTotal = 35;
+		s.essence = 80;
+		assertTrue(Planner.plan(s, p).getDetail().contains("60%"));
+		s.essence = 59;
 		assertEquals(Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
-		// After 55: pool to 30%.
-		s.loadedTotal = 55;
+		// After the next full bag: pool to ~30%.
+		s.loadedTotal = 54;
 		s.essence = 45;
 		assertTrue(Planner.plan(s, p).getDetail().contains("30%"));
 	}
 
 	@Test
-	public void tenPermitsDropTrick()
+	public void tenPermitsStormSalvage()
+	{
+		// Storm at 93% before the full bag is cooked: load the cooked ones now (never raw).
+		PlannerSettings p = solo(PlayStyle.SOLO_TEN_PERMITS);
+		Snapshot s = up();
+		s.loadedTotal = 16;
+		s.energy = 10;
+		s.cooked = 12;
+		s.raw = 7;
+		s.freeSlots = 0;
+		s.storm = 93;
+		Instruction now = Planner.plan(s, p);
+		assertEquals("Load now", now.getTitle());
+		assertTrue(now.getDetail().contains("Load 12"));
+	}
+
+	@Test
+	public void tenPermitsTwoCannonFinish()
 	{
 		PlannerSettings p = solo(PlayStyle.SOLO_TEN_PERMITS);
 		Snapshot s = up();
 		s.round = 3;
-		s.loadedTotal = 55;
+		s.loadedTotal = 54;
 		s.cooked = 19;
-		s.freeSlots = 9;
-		assertEquals("Drop 19 fish by a cannon", Planner.plan(s, p).getTitle());
+		s.freeSlots = 0;
+		assertEquals("Drop your fish at cannon 1", Planner.plan(s, p).getTitle());
 		s.groundFish = 19;
 		s.cooked = 0;
-		s.freeSlots = 28;
-		assertEquals(Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
-		s.cooked = 19;
-		s.freeSlots = 9;
-		assertEquals("Load one cannon", Planner.plan(s, p).getTitle());
-		s.loadedTotal = 74;
-		s.cooked = 0;
-		s.freeSlots = 28;
+		s.freeSlots = 19;
+		Instruction fish = Planner.plan(s, p);
+		assertEquals(Target.FISHING_SPOT, fish.getTarget());
+		assertTrue(fish.getDetail().contains("/ 16"));
+		s.cooked = 16;
+		s.freeSlots = 3;
 		s.nearCrate = true;
-		s.atFirstCrate = true;
-		assertEquals("Pick up your fish", Planner.plan(s, p).getTitle());
+		s.atDropCrate = true;
+		Instruction two = Planner.plan(s, p);
+		assertEquals("Load cannon 2", two.getTitle());
+		assertEquals(Target.OTHER_CRATE, two.getTarget());
+		s.atDropCrate = false;
+		assertEquals(Target.CRATE, Planner.plan(s, p).getTarget());
+		s.loadedTotal = 70;
+		s.cooked = 0;
+		s.freeSlots = 19;
+		Instruction pick = Planner.plan(s, p);
+		assertEquals("Pick up your fish", pick.getTitle());
+		assertEquals(Target.DROP_CRATE, pick.getTarget());
 		s.groundFish = 0;
 		s.cooked = 19;
-		s.freeSlots = 9;
-		Instruction other = Planner.plan(s, p);
-		assertEquals("Load the other cannon", other.getTitle());
-		assertEquals(Target.OTHER_CRATE, other.getTarget());
-		s.loadedTotal = 93;
+		s.freeSlots = 0;
+		Instruction one = Planner.plan(s, p);
+		assertEquals("Load cannon 1", one.getTitle());
+		assertEquals(Target.DROP_CRATE, one.getTarget());
+		s.loadedTotal = 89;
 		s.cooked = 0;
 		under(s);
 		assertTrue(Planner.plan(s, p).getDetail().contains("subdued"));
