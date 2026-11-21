@@ -139,6 +139,13 @@ public interface TemporossAutopilotConfig extends Config
 		return true;
 	}
 
+	@ConfigItem(keyName = "showSocials", name = "Channel links in panel", position = 13, section = overlaySection,
+		description = "Show the ToadFx YouTube, Twitch, Kick and TikTok buttons at the bottom of the side panel (takes effect after restarting the plugin)")
+	default boolean showSocials()
+	{
+		return true;
+	}
+
 	@ConfigItem(keyName = "showStep", name = "Small step box (top left)", position = 12, section = overlaySection,
 		description = "An extra small box with the next step and your fish count, if you'd rather have it at the side")
 	default boolean showStep()

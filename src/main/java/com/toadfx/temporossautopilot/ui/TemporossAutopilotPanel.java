@@ -116,6 +116,12 @@ public class TemporossAutopilotPanel extends PluginPanel
 		credit.setForeground(new Color(120, 120, 120));
 		credit.setBorder(new EmptyBorder(6, 2, 0, 0));
 		content.add(credit);
+		if (config.showSocials())
+		{
+			JPanel socials = SocialLinks.row();
+			socials.setBorder(new EmptyBorder(4, 0, 0, 0));
+			content.add(socials);
+		}
 
 		refresh();
 	}

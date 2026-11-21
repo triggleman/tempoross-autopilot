@@ -7,6 +7,13 @@ the next reward permit, how long until the storm wins, and a grade with tips aft
 
 Works on mass worlds, solo and duo. Made by ToadFx.
 
+<p>
+  <a href="https://www.youtube.com/@toadfxx"><img alt="YouTube" src="https://img.shields.io/badge/YouTube-%40toadfxx-FF0000?logo=youtube&logoColor=white"></a>
+  <a href="https://www.twitch.tv/toadfxx"><img alt="Twitch" src="https://img.shields.io/badge/Twitch-toadfxx-9146FF?logo=twitch&logoColor=white"></a>
+  <a href="https://kick.com/toadfx"><img alt="Kick" src="https://img.shields.io/badge/Kick-toadfx-53FC18?logo=kick&logoColor=black"></a>
+  <a href="https://www.tiktok.com/@toadfx"><img alt="TikTok" src="https://img.shields.io/badge/TikTok-%40toadfx-000000?logo=tiktok&logoColor=white"></a>
+</p>
+
 ## Screenshots
 
 | | |
