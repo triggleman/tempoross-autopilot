@@ -79,7 +79,7 @@ public final class Planner
 		{
 			return Instruction.of("Grab a rope", "You need it to tether during waves.", Target.SUPPLY_CRATES);
 		}
-		if (!s.hasHammer)
+		if (!s.hasHammer && !(set.style == PlayStyle.DUO_ROUTE && countSpirit(s.wearsSpirit) == 4))
 		{
 			return Instruction.of("Grab a hammer", "For fixing broken masts and totems.", Target.SUPPLY_CRATES);
 		}
@@ -229,6 +229,10 @@ public final class Planner
 		{
 			return Math.max(4, set.bucketsWanted);
 		}
+		if (set.style == PlayStyle.DUO_ROUTE)
+		{
+			return Math.max(DUO_BUCKETS, set.bucketsWanted);
+		}
 		return set.bucketsWanted;
 	}
 
@@ -248,6 +252,8 @@ public final class Planner
 				return "Catch 9 at the nearest spot and cook them, then fill up at a double spot.";
 			case MY_ROUTE:
 				return "Catch 8 and cook them, then fish the double spot until the wave.";
+			case DUO_ROUTE:
+				return "Catch 8 and cook them, then fish the double spot until the wave. First pool: take Tempoross from 100% to " + DUO_POOL_TO[0] + "%.";
 			case SOLO_RECOMMENDED:
 			case SOLO_FIREFIGHT:
 			case SOLO_FIVE_ROUNDS:
@@ -339,6 +345,10 @@ public final class Planner
 		{
 			return Instruction.of("Attack the spirit pool", "Stay until Tempoross is subdued, then leave.", Target.SPIRIT_POOL);
 		}
+		if (set.style == PlayStyle.DUO_ROUTE)
+		{
+			return duoPool(s);
+		}
 		return Instruction.of("Attack the spirit pool", "+55 points a scatter until Tempoross is subdued.", Target.SPIRIT_POOL);
 	}
 
@@ -425,6 +435,78 @@ public final class Planner
 		return fishStep(s, "Fish harpoonfish", "Fill and cook your bag, or load at " + ROUTE_LOAD_AT + "% (Tempoross is at " + Math.max(0, s.energy) + "%).");
 	}
 
+	// --------------------------------------------------------------------- ToadFx duo route
+
+	/** Buckets of water to bring for the duo route. */
+	static final int DUO_BUCKETS = 3;
+	/** Stop attacking the spirit pool once Tempoross's essence is down to this, by round. */
+	static final int[] DUO_POOL_TO = {60, 30, 0};
+
+	/** Essence to take Tempoross down to at this round's spirit pool. */
+	static int duoPoolTarget(int round)
+	{
+		return DUO_POOL_TO[Math.max(0, Math.min(DUO_POOL_TO.length - 1, round - 1))];
+	}
+
+	/**
+	 * Todd's duo spirit pool: round 1 takes Tempoross from 100% to 60%, round 2 from 60% to 30%,
+	 * round 3 from 30% to 0%. Once this round's share is done, go and fill and cook a full bag
+	 * for the next round.
+	 */
+	static Instruction duoPool(Snapshot s)
+	{
+		int target = duoPoolTarget(s.round);
+		if (target == 0 || s.essence < 0 || s.essence > target)
+		{
+			String until = target == 0 ? "Finish him: stay until Tempoross is subdued, then leave."
+				: "Take Tempoross down to " + target + "%" + (s.essence >= 0 ? " (now " + s.essence + "%)." : ".");
+			return Instruction.of("Attack the spirit pool", until, Target.SPIRIT_POOL);
+		}
+		// This round's share is done: get a full bag of cooked fish ready for the next round.
+		int cooked = s.cooked + s.crystal;
+		if (s.bagFull() && s.raw > 0 || s.cooking && s.raw > 0)
+		{
+			return Instruction.of("Cook at the shrine", "Down to " + s.essence + "%. Cook all " + s.raw + " for the next round.", Target.SHRINE);
+		}
+		if (s.bagFull() && cooked > 0)
+		{
+			return Instruction.of("Wait for the next round", "Full bag of cooked fish. Load it when Tempoross gets back up.", Target.CRATE);
+		}
+		return fishStep(s, "Back to fishing", "Down to " + s.essence + "%. Fill your bag with fish and cook it all for the next round.");
+	}
+
+	/**
+	 * Todd's duo route in the energy phase. Round 1 starts like the mass route (8, cook, double
+	 * spot until the wave). After that, every round: fill the bag, cook it all, load until empty,
+	 * and repeat until Tempoross is at 0%, then go to the spirit pool.
+	 */
+	static Instruction duoRoute(Snapshot s, PlannerSettings set)
+	{
+		int cooked = s.cooked + s.crystal;
+		if (s.round <= 1 && s.wavesThisRound == 0 && s.loadedThisRound == 0 && !s.bagFull())
+		{
+			// Same opener as the mass route.
+			return route(s, set);
+		}
+		if (s.nearCrate && cooked > 0 && s.raw == 0)
+		{
+			return Instruction.of("Load the cannon", "Load until your bag is empty (" + cooked + " left).", Target.CRATE);
+		}
+		if (s.bagFull() && s.raw > 0)
+		{
+			return Instruction.of("Cook at the shrine", "Bag full: cook all " + s.raw + " before loading.", Target.SHRINE);
+		}
+		if (s.bagFull() && cooked > 0)
+		{
+			return Instruction.of("Load the cannon", "Full bag of cooked fish: load it all.", Target.CRATE);
+		}
+		if (s.energy >= 0 && s.energy <= 3 && s.fish() == 0)
+		{
+			return Instruction.soon("Head to the spirit pool", "Tempoross is at " + Math.max(0, s.energy) + "%. Next pool: take him down to " + duoPoolTarget(s.round) + "%.", Target.SPIRIT_POOL);
+		}
+		return fishStep(s, "Fish until full", s.freeSlots + " slots left, then cook it all and load it (Tempoross is at " + Math.max(0, s.energy) + "%).");
+	}
+
 	/** Fish the double spot if there is one, otherwise the nearest spot. */
 	private static Instruction fishStep(Snapshot s, String title, String detail)
 	{
@@ -454,13 +536,13 @@ public final class Planner
 			return Instruction.of("Keep cooking", s.raw + " raw left to cook.", Target.SHRINE);
 		}
 
-		if (set.style == PlayStyle.MY_ROUTE && set.mode != GameMode.SOLO)
+		if (set.style.isToadFxRoute() && set.mode != GameMode.SOLO)
 		{
 			if (s.fireDistance >= 0 && s.fireDistance <= FIRE_IN_THE_WAY && s.waterBuckets > 0)
 			{
 				return Instruction.soon("Douse the fire", "It's right next to you and spreads fast (+40).", Target.FIRE);
 			}
-			return route(s, set);
+			return set.style == PlayStyle.DUO_ROUTE ? duoRoute(s, set) : route(s, set);
 		}
 
 		if (set.style == PlayStyle.CHILL && s.points >= Permits.FIRST)

@@ -68,7 +68,12 @@ public final class Lookahead
 				{
 					want = s.freeSlots;
 				}
-				else if (set.style == com.toadfx.temporossautopilot.model.PlayStyle.MY_ROUTE)
+				else if (s.phase == Phase.ESSENCE)
+				{
+					// Fishing while the pool is still up: fill the bag for the next round.
+					want = s.freeSlots;
+				}
+				else if (set.style.isToadFxRoute())
 				{
 					boolean opener = s.round <= 1 && s.wavesThisRound == 0 && s.cooked + s.crystal == 0 && s.loadedThisRound == 0;
 					if (opener)
@@ -112,12 +117,17 @@ public final class Lookahead
 				return true;
 			case CRATE:
 			{
+				if (step.getTitle().equals("Wait for the next round"))
+				{
+					nextRound(s);
+					return true;
+				}
 				if (step.getTitle().startsWith("Wait"))
 				{
 					s.energy = Math.min(s.energy, 35);
 					return true;
 				}
-				int load = set.style == com.toadfx.temporossautopilot.model.PlayStyle.MY_ROUTE && s.round > 1 ? s.fish() : Planner.loadable(s, cook);
+				int load = set.style.isToadFxRoute() && s.round > 1 ? s.fish() : Planner.loadable(s, cook);
 				if (load <= 0)
 				{
 					return false;
@@ -155,19 +165,19 @@ public final class Lookahead
 					s.spiritPool = true;
 					return true;
 				}
+				if (set.style == com.toadfx.temporossautopilot.model.PlayStyle.DUO_ROUTE && s.phase == Phase.ESSENCE && Planner.duoPoolTarget(s.round) > 0
+					&& (s.essence < 0 || s.essence > Planner.duoPoolTarget(s.round)))
+				{
+					s.essence = Planner.duoPoolTarget(s.round);
+					return true;
+				}
 				if (set.style == com.toadfx.temporossautopilot.model.PlayStyle.MY_ROUTE && s.round == 1 && s.phase == Phase.ESSENCE && s.energy < 90)
 				{
 					s.energy = 90;
 					return true;
 				}
 				// Tempoross recovers (or is subdued); plan for the next round.
-				s.phase = Phase.ENERGY;
-				s.energy = 100;
-				s.storm = 0;
-				s.round++;
-				s.loadedThisRound = 0;
-				s.spiritPool = false;
-				s.nearCrate = false;
+				nextRound(s);
 				return true;
 			case TETHER:
 				s.waveIncoming = false;
@@ -208,5 +218,18 @@ public final class Lookahead
 			default:
 				return false;
 		}
+	}
+
+	/** Tempoross gets back up: the next energy round starts. */
+	private static void nextRound(Snapshot s)
+	{
+		s.phase = Phase.ENERGY;
+		s.energy = 100;
+		s.storm = 0;
+		s.round++;
+		s.loadedThisRound = 0;
+		s.wavesThisRound = 0;
+		s.spiritPool = false;
+		s.nearCrate = false;
 	}
 }
