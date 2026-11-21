@@ -4,6 +4,7 @@ import com.toadfx.temporossautopilot.model.CookRule;
 import com.toadfx.temporossautopilot.model.GameMode;
 import com.toadfx.temporossautopilot.model.Harpoon;
 import com.toadfx.temporossautopilot.model.PlayStyle;
+import com.toadfx.temporossautopilot.model.SoloMethod;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -333,7 +334,9 @@ public final class Planner
 			case SOLO_FIREFIGHT:
 			case SOLO_FIVE_ROUNDS:
 			case SOLO_XP:
-				return "Solo-start from the rope ladder. Load exactly " + set.soloMethod.loadTarget(1) + " in round 1.";
+				return "Solo-start from the rope ladder. First load: " + set.soloMethod.firstLoad() + " fish.";
+			case SOLO_TEN_PERMITS:
+				return "Solo-start from the rope ladder. Catch and cook 17, load them, then 19 more.";
 			case MAX_PERMITS:
 				return "Cook 7 at a time (9 at 85+ Fishing) and start loading at 49% energy.";
 			default:
@@ -369,6 +372,10 @@ public final class Planner
 		if (!s.hasHarpoon && !set.barehanded)
 		{
 			return Instruction.now("Grab a harpoon", "You lost it. Take one from the harpoon crate.", Target.SUPPLY_CRATES);
+		}
+		if (set.mode == GameMode.SOLO && set.soloMethod.hasTargets())
+		{
+			return solo(s, set);
 		}
 		if (s.phase == Phase.ESSENCE || s.spiritPool && s.energy == 0)
 		{
@@ -698,14 +705,265 @@ public final class Planner
 		return cook == CookRule.NEVER ? s.fish() : s.cooked + s.crystal;
 	}
 
-	/** Fixed load count for this round (solo routes), or -1. */
+	/** Fish left to load in this leg of a solo route, or -1 if the style has no fixed counts. */
 	static int loadTarget(Snapshot s, PlannerSettings set)
 	{
-		if (set.mode != GameMode.SOLO)
+		if (set.mode != GameMode.SOLO || !set.soloMethod.hasTargets())
 		{
 			return -1;
 		}
-		return set.soloMethod.loadTarget(s.round);
+		SoloMethod m = set.soloMethod;
+		int li = m.legIndex(s.loadedTotal);
+		return li >= m.legCount() ? 0 : m.start(li) + m.leg(li).fish - s.loadedTotal;
+	}
+
+	// --------------------------------------------------------------------- solo routes (OSRS Wiki)
+
+	/** Pause this long after the first part of a split load (wiki: "wait a second"). */
+	static final int PAUSE_MS = 2400;
+
+	/**
+	 * Solo routes, leg by leg. Loads are counted over the whole game, so it doesn't matter
+	 * whether Tempoross is up or under when a leg is loaded.
+	 */
+	static Instruction solo(Snapshot s, PlannerSettings set)
+	{
+		SoloMethod m = set.soloMethod;
+		int li = m.legIndex(s.loadedTotal);
+		boolean poolPhase = s.phase == Phase.ESSENCE || s.spiritPool && s.energy == 0;
+
+		if (poolPhase)
+		{
+			Instruction pool = soloPool(s, m.poolAfter(li), li >= m.legCount());
+			if (pool != null)
+			{
+				return pool;
+			}
+		}
+		if (li >= m.legCount())
+		{
+			return Instruction.soon("Head to the spirit pool", "Everything's loaded. Finish Tempoross at the pool.", Target.SPIRIT_POOL);
+		}
+
+		SoloMethod.Leg leg = m.leg(li);
+		CookRule cook = set.cookRule();
+		int done = s.loadedTotal - m.start(li);
+		int left = leg.fish - done;
+		int loadable = loadable(s, cook);
+		SoloMethod.PoolRule rule = m.poolAfter(li);
+		boolean wentToPool = rule.leaveAt > 0 && rule.leaveAt <= 100 && (rule.onlyIfAbove < 0 || s.poolOpenEssence > rule.onlyIfAbove);
+		String skip = !poolPhase ? "" : wentToPool ? " Leave the pool now." : " Skip the spirit pool.";
+
+		// Race the storm (not while holding a split or drop-trick load: those go in a set order).
+		if (loadable > 0 && stormDanger(s, set) && !leg.dropTrick && leg.split == 0)
+		{
+			return Instruction.now("Load now", "Storm at " + s.storm + "%. Load " + Math.min(loadable, left) + " now, top up after.", Target.CRATE);
+		}
+		if (s.cooking && s.raw > 0 && cook != CookRule.NEVER)
+		{
+			return Instruction.of("Keep cooking", s.raw + " raw left to cook.", Target.SHRINE);
+		}
+		if (s.fireDistance >= 0 && s.fireDistance <= FIRE_IN_THE_WAY && s.waterBuckets > 0)
+		{
+			return Instruction.soon("Douse the fire", "It's right next to you and spreads fast (+40).", Target.FIRE);
+		}
+
+		if (leg.dropTrick)
+		{
+			return dropTrick(s, set, leg, done, cook);
+		}
+
+		// Mid-load: follow the split.
+		if (done > 0)
+		{
+			int chunk = leg.chunkFor(s.roundStartEnergy);
+			if (chunk > 0 && done == chunk && s.msSinceLoad >= 0 && s.msSinceLoad < PAUSE_MS)
+			{
+				return Instruction.of("Wait a moment", "Fill a bucket, fix a mast or stand still so no fish are wasted. Then load the other " + left + ".", Target.CRATE);
+			}
+			if (chunk > 0 && done < chunk && loadable > 0)
+			{
+				return Instruction.of("Load the cannon", "Load " + (chunk - done) + " more, then pause a moment.", Target.CRATE);
+			}
+			if (leg.split > 0 && loadable > 0)
+			{
+				return splitStep(s, leg.split, done, left);
+			}
+			if (loadable >= left || loadable > 0 && s.nearCrate)
+			{
+				return Instruction.of("Load the cannon", "Load the other " + left + "." + skip, Target.CRATE);
+			}
+			return gather(s, set, cook, left, leg.noDoubles, "for the rest of this load." + skip);
+		}
+
+		// Before the leg: chores, room, then catch and cook enough.
+		if (set.style.fightsFires())
+		{
+			Instruction chore = chore(s);
+			if (chore != null)
+			{
+				return chore;
+			}
+		}
+		if (leg.dropBuckets && s.emptyBuckets + s.waterBuckets > 0 && s.fish() + s.freeSlots < leg.gather)
+		{
+			return Instruction.of("Drop your buckets", "You need " + leg.gather + " free slots for fish. Keep them only if fires block the spots." + skip, Target.NONE);
+		}
+		// A full bag that's all cooked is ready even if it's a few short: load it and top up after.
+		boolean ready = loadable >= leg.gather || s.bagFull() && (cook == CookRule.NEVER || s.raw == 0) && loadable > 0;
+		if (!ready)
+		{
+			return gather(s, set, cook, leg.gather, leg.noDoubles, "before you load." + skip);
+		}
+		if (leg.afterResurface && poolPhase)
+		{
+			return Instruction.of("Wait for him to come back up", "Hold your " + loadable + " fish. When Tempoross is back up, load " + leg.split + " in one crate and the rest in the other.", Target.CRATE);
+		}
+		if (leg.afterSubmerge && !poolPhase)
+		{
+			return Instruction.of("Wait for him to go under", "Hold your " + loadable + " fish. Once Tempoross goes under, load " + leg.split + " in one crate and " + (leg.fish - leg.split) + " in the other.", Target.CRATE);
+		}
+		int chunk = leg.chunkFor(s.roundStartEnergy);
+		if (chunk > 0)
+		{
+			return Instruction.of("Load the cannon", "Load " + chunk + " first, pause a moment, then load " + (leg.fish - chunk) + ".", Target.CRATE);
+		}
+		if (leg.split > 0)
+		{
+			return splitStep(s, leg.split, 0, left);
+		}
+		if (leg.fish == 1)
+		{
+			return Instruction.of("Load 1 fish", "Just one. Then wait for Tempoross to go under. Keep the rest.", Target.CRATE);
+		}
+		if (loadable < left)
+		{
+			return Instruction.of("Load the cannon", "Load your " + loadable + ", then catch " + (left - loadable) + " more to make " + left + "." + skip, Target.CRATE);
+		}
+		boolean keep = loadable > left;
+		return Instruction.of("Load the cannon", "Load exactly " + left + (keep ? " and keep the other " + (loadable - left) : "") + "." + skip, Target.CRATE);
+	}
+
+	/** The spirit pool for a solo route, or null to get on with the next leg. */
+	private static Instruction soloPool(Snapshot s, SoloMethod.PoolRule rule, boolean finish)
+	{
+		if (finish || rule.leaveAt == 0)
+		{
+			return !s.spiritPool
+				? Instruction.soon("Head to the spirit pool", "Finish Tempoross off.", Target.SPIRIT_POOL)
+				: Instruction.of("Attack the spirit pool", "Finish him: stay until Tempoross is subdued.", Target.SPIRIT_POOL);
+		}
+		if (rule.leaveAt > 100)
+		{
+			return null;
+		}
+		if (rule.onlyIfAbove >= 0 && (s.poolOpenEssence < 0 || s.poolOpenEssence <= rule.onlyIfAbove))
+		{
+			return null;
+		}
+		if (rule.leaveAt > 0 && s.essence >= 0 && s.essence <= rule.leaveAt)
+		{
+			return null;
+		}
+		String detail = rule.leaveAt < 0
+			? "+55 a hit until Tempoross resurfaces."
+			: "Take him down to " + rule.leaveAt + "%" + (s.essence >= 0 ? " (now " + s.essence + "%)" : "") + ", then go fishing.";
+		return !s.spiritPool
+			? Instruction.soon("Head to the spirit pool", detail, Target.SPIRIT_POOL)
+			: Instruction.of("Attack the spirit pool", detail, Target.SPIRIT_POOL);
+	}
+
+	/** Put {@code first} in one crate and the rest in the other. */
+	private static Instruction splitStep(Snapshot s, int first, int done, int left)
+	{
+		if (done < first)
+		{
+			return Instruction.of("Load " + first + " in one crate", "Then " + (done + left - first) + " in the other. " + done + " / " + first + " in this one.", Target.CRATE);
+		}
+		if (s.nearCrate && !s.atFirstCrate)
+		{
+			return Instruction.of("Load this crate", "Load the other " + left + " here.", Target.CRATE);
+		}
+		return Instruction.of("Go to the other crate", "Load the other " + left + " there.", Target.OTHER_CRATE);
+	}
+
+	/**
+	 * Wiki 10 permits finish: catch and cook 19, drop them by a cannon, catch and cook 19 more,
+	 * load them into one cannon, pick up the dropped 19 and load the other cannon.
+	 */
+	private static Instruction dropTrick(Snapshot s, PlannerSettings set, SoloMethod.Leg leg, int done, CookRule cook)
+	{
+		int half = leg.fish / 2;
+		int cooked = loadable(s, cook);
+		if (done == 0 && s.groundFish < half)
+		{
+			if (cooked >= half && s.raw == 0)
+			{
+				return Instruction.of("Drop " + half + " fish by a cannon", "Drop all " + half + " on the ground next to a cannon. Don't load them yet.", Target.CRATE);
+			}
+			return gather(s, set, cook, half, false, "then drop them by a cannon.");
+		}
+		if (done < half)
+		{
+			if (cooked >= half - done || done > 0 && cooked > 0)
+			{
+				return Instruction.of("Load one cannon", "Load " + (half - done) + " into this cannon. Your dropped fish stay on the ground.", Target.CRATE);
+			}
+			return gather(s, set, cook, half - done, false, "then load them into one cannon.");
+		}
+		int left = leg.fish - done;
+		if (s.groundFish > 0 && cooked < left)
+		{
+			return Instruction.of("Pick up your fish", "Pick up the " + s.groundFish + " you dropped.", Target.CRATE);
+		}
+		if (cooked > 0)
+		{
+			if (s.nearCrate && !s.atFirstCrate)
+			{
+				return Instruction.of("Load this cannon", "Load the other " + left + " here.", Target.CRATE);
+			}
+			return Instruction.of("Load the other cannon", "Load the " + left + " you picked up into the other cannon.", Target.OTHER_CRATE);
+		}
+		return gather(s, set, cook, left, false, "to finish the load.");
+	}
+
+	/** Catch (and cook) until you hold {@code need} fish ready to load. */
+	private static Instruction gather(Snapshot s, PlannerSettings set, CookRule cook, int need, boolean noDoubles, String why)
+	{
+		int ready = loadable(s, cook);
+		if (cook != CookRule.NEVER && s.raw > 0)
+		{
+			boolean enough = ready + s.raw >= need;
+			boolean opener = ready == 0 && s.raw >= PlannerSettings.batchSize(s.fishingLevel) && (!s.doubleSpot || noDoubles);
+			if (enough || s.bagFull() || opener)
+			{
+				return Instruction.of("Cook at the shrine", "Cook your " + s.raw + " raw. " + Math.min(need, ready + s.raw) + " / " + need + " " + why, Target.SHRINE);
+			}
+		}
+		if (s.bagFull())
+		{
+			return Instruction.of("Make room", "Your bag is full. Drop buckets you don't need: you want room for " + need + " fish.", Target.NONE);
+		}
+		String line = s.fish() + " / " + need + " " + why;
+		if (s.doubleSpot && !noDoubles)
+		{
+			return Instruction.of("Fish the double spot", line, Target.DOUBLE_SPOT);
+		}
+		return Instruction.of("Fish harpoonfish", line, Target.FISHING_SPOT);
+	}
+
+	/** Fires and broken masts close by, for firefighting routes. */
+	private static Instruction chore(Snapshot s)
+	{
+		if (s.fireDistance >= 0 && s.fireDistance <= CHORE_RANGE && s.waterBuckets > 0)
+		{
+			return Instruction.of("Douse the fire", "+40 points.", Target.FIRE);
+		}
+		if (s.damagedTetherDistance >= 0 && s.damagedTetherDistance <= CHORE_RANGE && s.hasHammer)
+		{
+			return Instruction.of("Repair the mast", "+40 points, and it's ready for the next wave.", Target.DAMAGED_TETHER);
+		}
+		return null;
 	}
 
 	static boolean stormDanger(Snapshot s, PlannerSettings set)

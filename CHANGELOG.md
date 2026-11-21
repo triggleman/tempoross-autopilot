@@ -9,6 +9,7 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
+- Solo routes rebuilt from the wiki step lists, counting loads over the whole game: Recommended solo and Solo max permits now load 17 then 19 before the first pool (they used to stop at 17). Solo 5 rounds follows the wiki step by step (18 + pause + the rest, 9 or 10 + pause + 17, no pool after round 2, load 1, then 5 and 13 in two crates, keep 9, catch 9 more). New style Solo 10 permits (17, 19, pool to 50%, 19, pool to 30%, drop 19 by a cannon, 19 into one cannon, pick up and load the other). Fish dropped next to a crate no longer count as loaded.
 - Double spots and fishing spots are picked by walking time, like the spirit pool: a double across the water (a long walk round) is ignored, and only doubles within about 40 tiles of walking count.
 - Channel buttons (YouTube, Twitch, Kick, TikTok) at the bottom of the side panel, open in your web browser; can be turned off. Badges in the README.
 - What to bring: each style has its own packing list (buckets, Humidify runes, free slots, best harpoon and more) in the side panel, ticked against your inventory; solo styles ask for the wiki bucket counts (4 for Recommended solo, 6 for Solo max permits, none to start for 5 rounds).

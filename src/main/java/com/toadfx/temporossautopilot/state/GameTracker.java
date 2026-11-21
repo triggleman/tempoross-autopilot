@@ -109,6 +109,15 @@ public class GameTracker
 	private int chatCooks;
 	/** When the last "You successfully cook" message came (epoch ms). */
 	private long lastCookMillis;
+	private long lastLoadMillis;
+	/** Fish loaded per crate since the round or the pool started, and the first crate used. */
+	private final Map<NPC, Integer> crateLoads = new ConcurrentHashMap<>();
+	private volatile NPC firstCrate;
+	/** Your harpoonfish on the ground, and how many were dropped since the last tick. */
+	private final Set<net.runelite.api.TileItem> groundFish = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
+	private int droppedThisTick;
+	private int roundStartEnergy = -1;
+	private int poolOpenEssence = -1;
 
 	// Inventory last tick, for counting catches, cooks and loads.
 	private int lastRaw;
@@ -396,6 +405,13 @@ public class GameTracker
 			}
 		}
 
+		// The pool opening starts a new pair of crates (5-round route: 5 in one, 13 in the other).
+		if (before == Phase.ENERGY && phase == Phase.ESSENCE)
+		{
+			crateLoads.clear();
+			firstCrate = null;
+			poolOpenEssence = essence;
+		}
 		// Rounds: back to the energy phase after the spirit pool.
 		if (before == Phase.ESSENCE && phase == Phase.ENERGY)
 		{
@@ -403,6 +419,10 @@ public class GameTracker
 			round++;
 			loadedThisRound = 0;
 			wavesThisRound = 0;
+			crateLoads.clear();
+			firstCrate = null;
+			roundStartEnergy = -1;
+			poolOpenEssence = -1;
 			if (game != null)
 			{
 				game.rounds = round;
@@ -473,6 +493,12 @@ public class GameTracker
 		round = 1;
 		loadedThisRound = 0;
 		wavesThisRound = 0;
+		crateLoads.clear();
+		firstCrate = null;
+		groundFish.clear();
+		roundStartEnergy = -1;
+		poolOpenEssence = -1;
+		lastLoadMillis = 0;
 		lowestPoolEssence = 100;
 		wonSeen = false;
 		permitsAtStart = client.getVarbitValue(VarbitID.TEMPOROSS_REWARDPERMITS);
@@ -701,7 +727,8 @@ public class GameTracker
 				game.fishCooked += dCooked;
 			}
 			// Loading: the total number of fish drops (cooking only swaps raw for cooked).
-			int out = -(dRaw + dCooked + dCrystal);
+			// Fish dropped on the ground next to a crate aren't loads.
+			int out = -(dRaw + dCooked + dCrystal) - droppedThisTick;
 			if (atCrate && !waveIncoming && out > 0)
 			{
 				int cookedOut = Math.min(out, Math.max(0, -dCooked));
@@ -709,12 +736,60 @@ public class GameTracker
 				game.loadedRaw += rawOut;
 				game.loadedCooked += cookedOut;
 				loadedThisRound += out;
+				lastLoadMillis = System.currentTimeMillis();
+				NPC crate = nearestNpc(crates);
+				if (crate != null)
+				{
+					crateLoads.merge(crate, out, Integer::sum);
+					if (firstCrate == null)
+					{
+						firstCrate = crate;
+					}
+				}
 			}
 		}
 		lastRaw = s.raw;
 		lastCooked = s.cooked;
 		lastCrystal = s.crystal;
 		chatCooks = 0;
+		droppedThisTick = 0;
+	}
+
+	/** A ground item appeared: count your own harpoonfish dropped right next to you. */
+	public void itemSpawned(net.runelite.api.Tile tile, net.runelite.api.TileItem item)
+	{
+		if (game == null || item == null || tile == null || !Ids.isHarpoonfish(item.getId()))
+		{
+			return;
+		}
+		Player me = client.getLocalPlayer();
+		WorldPoint here = me == null ? null : me.getWorldLocation();
+		WorldPoint at = tile.getWorldLocation();
+		if (here != null && at != null && at.distanceTo(here) <= 1)
+		{
+			groundFish.add(item);
+			droppedThisTick += Math.max(1, item.getQuantity());
+		}
+	}
+
+	public void itemDespawned(net.runelite.api.TileItem item)
+	{
+		groundFish.remove(item);
+	}
+
+	/** The crate you didn't load into first this round (for "the other crate"), nearest first. */
+	public NPC getOtherCrate()
+	{
+		NPC first = firstCrate;
+		java.util.List<NPC> others = new java.util.ArrayList<>();
+		for (NPC c : crates)
+		{
+			if (c != first)
+			{
+				others.add(c);
+			}
+		}
+		return others.isEmpty() ? null : nearestNpc(others);
 	}
 
 	private void trackDoubleAndIdle(Player me, WorldPoint here)
@@ -756,6 +831,18 @@ public class GameTracker
 		s.nearCrate = crate >= 0 && crate <= CRATE_REACH;
 		s.secondsToCrate = StormClock.runSeconds(crate);
 		s.loadedThisRound = loadedThisRound;
+		s.loadedTotal = game == null ? 0 : game.loadedRaw + game.loadedCooked;
+		s.msSinceLoad = lastLoadMillis == 0 ? -1 : (int) Math.min(Integer.MAX_VALUE, System.currentTimeMillis() - lastLoadMillis);
+		NPC atCrate = s.nearCrate ? nearestNpc(crates) : null;
+		s.loadedHere = atCrate == null ? 0 : crateLoads.getOrDefault(atCrate, 0);
+		s.atFirstCrate = atCrate != null && atCrate == firstCrate;
+		s.groundFish = groundFish.size();
+		if (phase == Phase.ENERGY && roundStartEnergy < 0 && energy >= 0)
+		{
+			roundStartEnergy = energy;
+		}
+		s.roundStartEnergy = roundStartEnergy;
+		s.poolOpenEssence = poolOpenEssence;
 		s.wavesThisRound = wavesThisRound;
 		// Still cooking if a fish was cooked in the last few seconds and raw fish are left.
 		s.cooking = s.raw > 0 && System.currentTimeMillis() - lastCookMillis < 3000;

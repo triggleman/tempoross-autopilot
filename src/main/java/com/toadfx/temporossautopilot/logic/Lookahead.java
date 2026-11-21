@@ -45,6 +45,14 @@ public final class Lookahead
 	static boolean advance(Snapshot s, Instruction step, PlannerSettings set)
 	{
 		CookRule cook = set.cookRule();
+		if (set.mode == com.toadfx.temporossautopilot.model.GameMode.SOLO && set.soloMethod.hasTargets())
+		{
+			Boolean solo = advanceSolo(s, step, set, cook);
+			if (solo != null)
+			{
+				return solo;
+			}
+		}
 		switch (step.getTarget())
 		{
 			case DOUBLE_SPOT:
@@ -220,6 +228,147 @@ public final class Lookahead
 		}
 	}
 
+	/** Solo routes: pretend a leg step is done. Null to use the general rules. */
+	private static Boolean advanceSolo(Snapshot s, Instruction step, PlannerSettings set, CookRule cook)
+	{
+		com.toadfx.temporossautopilot.model.SoloMethod m = set.soloMethod;
+		int li = m.legIndex(s.loadedTotal);
+		if (li >= m.legCount())
+		{
+			return step.getTarget() == Target.SPIRIT_POOL ? Boolean.FALSE : null;
+		}
+		com.toadfx.temporossautopilot.model.SoloMethod.Leg leg = m.leg(li);
+		int done = s.loadedTotal - m.start(li);
+		int left = leg.fish - done;
+		String title = step.getTitle();
+		switch (step.getTarget())
+		{
+			case DOUBLE_SPOT:
+			case FISHING_SPOT:
+			{
+				int need = leg.dropTrick ? leg.fish / 2 : done == 0 ? leg.gather : left;
+				int want = Math.min(Math.max(1, need - s.fish()), s.freeSlots);
+				if (want <= 0)
+				{
+					return false;
+				}
+				s.raw += want;
+				s.freeSlots -= want;
+				s.points += want * Permits.FISH;
+				s.doubleSpot = false;
+				return true;
+			}
+			case NONE:
+				if (title.startsWith("Drop your buckets"))
+				{
+					s.freeSlots += s.emptyBuckets + s.waterBuckets;
+					s.emptyBuckets = 0;
+					s.waterBuckets = 0;
+					return true;
+				}
+				return false;
+			case CRATE:
+			case OTHER_CRATE:
+			{
+				if (title.equals("Wait a moment"))
+				{
+					s.msSinceLoad = Planner.PAUSE_MS + 1;
+					return true;
+				}
+				if (title.startsWith("Wait for him to go under"))
+				{
+					pool(s);
+					return true;
+				}
+				if (title.startsWith("Wait for him to come back up"))
+				{
+					nextRound(s);
+					return true;
+				}
+				if (title.startsWith("Drop "))
+				{
+					int half = leg.fish / 2;
+					s.groundFish += half;
+					s.cooked -= Math.min(half, s.cooked);
+					s.freeSlots += half;
+					return true;
+				}
+				if (title.startsWith("Pick up"))
+				{
+					s.cooked += s.groundFish;
+					s.freeSlots -= s.groundFish;
+					s.groundFish = 0;
+					return true;
+				}
+				int n = left;
+				int chunk = leg.chunkFor(s.roundStartEnergy);
+				if (chunk > 0 && done < chunk)
+				{
+					n = chunk - done;
+				}
+				else if (leg.split > 0 && done < leg.split)
+				{
+					n = leg.split - done;
+				}
+				else if (leg.dropTrick && done < leg.fish / 2)
+				{
+					n = leg.fish / 2 - done;
+				}
+				n = Math.min(n, Planner.loadable(s, cook));
+				if (n <= 0)
+				{
+					return false;
+				}
+				int cookedOut = Math.min(n, s.cooked);
+				s.cooked -= cookedOut;
+				int crystalOut = Math.min(n - cookedOut, s.crystal);
+				s.crystal -= crystalOut;
+				s.raw -= n - cookedOut - crystalOut;
+				s.points += cookedOut * Permits.DEPOSIT_COOKED + (n - cookedOut) * Permits.DEPOSIT_RAW;
+				s.freeSlots += n;
+				s.loadedTotal += n;
+				s.loadedThisRound += n;
+				s.msSinceLoad = 0;
+				s.nearCrate = true;
+				s.atFirstCrate = step.getTarget() == Target.CRATE && done == 0 || s.atFirstCrate && step.getTarget() == Target.CRATE;
+				if (done + n >= leg.fish && leg.submerges && s.phase == Phase.ENERGY)
+				{
+					pool(s);
+				}
+				return true;
+			}
+			case SPIRIT_POOL:
+			{
+				if (title.startsWith("Head to"))
+				{
+					pool(s);
+					return true;
+				}
+				com.toadfx.temporossautopilot.model.SoloMethod.PoolRule rule = m.poolAfter(li);
+				if (rule.leaveAt > 0 && rule.leaveAt <= 100 && (s.essence < 0 || s.essence > rule.leaveAt))
+				{
+					s.essence = rule.leaveAt;
+					return true;
+				}
+				nextRound(s);
+				return true;
+			}
+			default:
+				return null;
+		}
+	}
+
+	/** Tempoross goes under: the spirit pool opens. */
+	private static void pool(Snapshot s)
+	{
+		s.phase = Phase.ESSENCE;
+		s.energy = 0;
+		s.spiritPool = true;
+		s.poolOpenEssence = s.essence;
+		s.atFirstCrate = false;
+		s.nearCrate = false;
+	}
+
 	/** Tempoross gets back up: the next energy round starts. */
 	private static void nextRound(Snapshot s)
 	{
@@ -231,5 +380,8 @@ public final class Lookahead
 		s.wavesThisRound = 0;
 		s.spiritPool = false;
 		s.nearCrate = false;
+		s.atFirstCrate = false;
+		s.roundStartEnergy = 100;
+		s.poolOpenEssence = -1;
 	}
 }

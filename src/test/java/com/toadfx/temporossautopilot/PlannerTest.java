@@ -162,16 +162,15 @@ public class PlannerTest
 		s.freeSlots = 11;
 		Instruction load = Planner.plan(s, p);
 		assertEquals(Target.CRATE, load.getTarget());
-		assertTrue(load.getDetail().contains("Stop at 17"));
+		assertTrue(load.getDetail().contains("Load exactly 17"));
 
-		s.loadedThisRound = 17;
-		s.cooked = 0;
-		assertEquals("Round target met", Planner.plan(s, p).getTitle());
-
-		s.round = 2;
-		s.loadedThisRound = 0;
+		// 17 in: Tempoross stays up at ~4%, so straight on to the next 19 (no pool yet).
+		s.loadedTotal = 17;
 		s.cooked = 10;
-		assertEquals("Needs 19 in round 2", Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
+		s.freeSlots = 18;
+		Instruction next = Planner.plan(s, p);
+		assertEquals(Target.FISHING_SPOT, next.getTarget());
+		assertTrue(next.getDetail().contains("/ 19"));
 	}
 
 	@Test

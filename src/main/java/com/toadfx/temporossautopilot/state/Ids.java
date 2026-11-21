@@ -81,6 +81,11 @@ public final class Ids
 	public static final int RAW_FISH = ItemID.TEMPOROSS_RAW_HARPOONFISH;
 	public static final int COOKED_FISH = ItemID.TEMPOROSS_HARPOONFISH;
 	public static final int CRYSTAL_FISH = ItemID.TEMPOROSS_CRYSTALLISED_HARPOONFISH;
+
+	public static boolean isHarpoonfish(int id)
+	{
+		return id == RAW_FISH || id == COOKED_FISH || id == CRYSTAL_FISH;
+	}
 	public static final Set<Integer> HARPOONS = set(
 		ItemID.HARPOON,
 		ItemID.HUNTING_BARBED_HARPOON,

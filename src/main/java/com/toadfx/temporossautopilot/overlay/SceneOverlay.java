@@ -125,7 +125,7 @@ public class SceneOverlay extends Overlay
 			if (crate != null)
 			{
 				int targetLoad = plugin.getLoadTarget();
-				String text = targetLoad > 0 ? s.loadedThisRound + " / " + targetLoad : "Loaded " + s.loadedThisRound;
+				String text = targetLoad > 0 ? plugin.getLoadDone() + " / " + targetLoad : "Loaded " + s.loadedThisRound;
 				label(g, crate.getCanvasTextLocation(g, text, 120), text, config.targetColor());
 			}
 		}
@@ -171,6 +171,8 @@ public class SceneOverlay extends Overlay
 		{
 			case CRATE:
 				return "Load here";
+			case OTHER_CRATE:
+				return "Load this crate";
 			case SHRINE:
 				return "Cook here";
 			case SPIRIT_POOL:

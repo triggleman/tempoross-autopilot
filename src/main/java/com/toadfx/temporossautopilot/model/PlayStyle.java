@@ -15,9 +15,10 @@ public enum PlayStyle
 	MAX_XP("Max Fishing XP", "Theoatrix XP: never cook, crystal harpoon, spirit angler outfit", CookRule.NEVER, "Fishing XP per hour", Modes.TEAM, SoloMethod.STYLE),
 	FIREFIGHTER("Firefighter", "Douse fires and fix masts for 40 points each (Humidify helps)", CookRule.ALWAYS, "points per game", Modes.TEAM, SoloMethod.STYLE),
 	// ---- Solo (OSRS Wiki solo methods)
-	SOLO_RECOMMENDED("Recommended solo", "Wiki 17 / 19 / 19 / 27: cook and load exact counts each round. Humidify helps", CookRule.ALWAYS, "permits per hour", Modes.SOLO, SoloMethod.ROUTE_17_19_19_27),
-	SOLO_FIREFIGHT("Solo max permits", "Wiki cooking + firefighting: 17 / 19 / 19 and douse fires for points (Humidify helps)", CookRule.ALWAYS, "permits per game", Modes.SOLO, SoloMethod.FIREFIGHTING),
-	SOLO_FIVE_ROUNDS("Solo 5 rounds", "Wiki 5-round method: 26 / 26 / 28 a round, most points per game", CookRule.ALWAYS, "points per game", Modes.SOLO, SoloMethod.FIVE_ROUNDS),
+	SOLO_RECOMMENDED("Recommended solo", "Wiki 17 / 19 / 19 / 27: load 17, then 19, pool, 19, pool, 27. Humidify helps", CookRule.ALWAYS, "permits per hour", Modes.SOLO, SoloMethod.ROUTE_17_19_19_27),
+	SOLO_FIREFIGHT("Solo max permits", "Wiki cooking + firefighting: 17, 19, pool, 19, pool to 50%, 2, and douse fires for points (Humidify helps)", CookRule.ALWAYS, "permits per game", Modes.SOLO, SoloMethod.FIREFIGHTING),
+	SOLO_FIVE_ROUNDS("Solo 5 rounds", "Wiki 5-round method: 26, pool, 26, then 28 split 1 / 5 + 13 / keep 9, catch 9 more, finish. 8,500-9,500 points", CookRule.ALWAYS, "points per game", Modes.SOLO, SoloMethod.FIVE_ROUNDS),
+	SOLO_TEN_PERMITS("Solo 10 permits", "Wiki 10 permits route: 17, 19, pool to 50%, 19, pool to 30%, then 19 dropped + 19 into two cannons", CookRule.ALWAYS, "points per game", Modes.SOLO, SoloMethod.TEN_PERMITS),
 	SOLO_XP("Solo max Fishing XP", "Wiki no-cooking method: 26, then 27 raw a trip. Crystal harpoon", CookRule.NEVER, "Fishing XP per hour", Modes.SOLO, SoloMethod.NO_COOK),
 	// ---- Any mode
 	CHILL("Chill: one permit", "Least clicking for 1 reward", CookRule.NEVER, "reaching 2,000 points", Modes.ALL, SoloMethod.STYLE),

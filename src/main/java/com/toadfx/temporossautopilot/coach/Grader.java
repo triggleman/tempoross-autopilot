@@ -97,6 +97,9 @@ public final class Grader
 		}
 	}
 
+	/** Points that guarantee 10 reward permits. */
+	static final int TEN_PERMITS = 8_300;
+
 	/** Score change for the play style's own goal. */
 	private static int styleScore(GameRecord r, int pointsTarget, List<Tip> tips)
 	{
@@ -125,6 +128,16 @@ public final class Grader
 				{
 					tips.add(new Tip(10, "Only " + r.fishCooked + " of " + r.fishCaught + " fish were cooked. Cook your whole bag before loading."));
 					return -10;
+				}
+				return 0;
+			case SOLO_FIVE_ROUNDS:
+			case SOLO_TEN_PERMITS:
+				if (r.won && r.points < TEN_PERMITS)
+				{
+					int short10 = TEN_PERMITS - r.points;
+					int c = Math.min(20, 5 + short10 / 100);
+					tips.add(new Tip(c, String.format("%,d", short10) + " points short of 8,300 (10 permits for sure). Cook every fish and load the exact counts."));
+					return -c;
 				}
 				return 0;
 			case CHILL:

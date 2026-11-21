@@ -48,6 +48,8 @@ import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ItemDespawned;
+import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.NpcChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
@@ -128,6 +130,8 @@ public class TemporossAutopilotPlugin extends Plugin
 	private volatile GameObject targetObject;
 	private volatile NPC targetCrate;
 	private volatile int loadTarget = -1;
+	private volatile int loadDone;
+	private int lastLeg = -1;
 	private volatile List<Instruction> upcoming = Collections.emptyList();
 
 	private final Session session = new Session();
@@ -138,7 +142,6 @@ public class TemporossAutopilotPlugin extends Plugin
 
 	// Alert bookkeeping.
 	private boolean stormWarned;
-	private boolean loadTargetWarned;
 	private int lastPermits;
 	private int panelTick;
 
@@ -301,6 +304,24 @@ public class TemporossAutopilotPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onItemSpawned(ItemSpawned e)
+	{
+		if (tracker != null)
+		{
+			tracker.itemSpawned(e.getTile(), e.getItem());
+		}
+	}
+
+	@Subscribe
+	public void onItemDespawned(ItemDespawned e)
+	{
+		if (tracker != null)
+		{
+			tracker.itemDespawned(e.getItem());
+		}
+	}
+
+	@Subscribe
 	public void onChatMessage(ChatMessage e)
 	{
 		if (tracker != null && (e.getType() == ChatMessageType.GAMEMESSAGE || e.getType() == ChatMessageType.SPAM))
@@ -347,7 +368,24 @@ public class TemporossAutopilotPlugin extends Plugin
 		Snapshot s = tracker.getSnapshot();
 		PlannerSettings settings = settings();
 		Instruction step = Planner.plan(s, settings);
-		loadTarget = s.phase == Phase.ENERGY && settings.mode == GameMode.SOLO ? settings.soloMethod.loadTarget(s.round) : -1;
+		if (settings.mode == GameMode.SOLO && settings.soloMethod.hasTargets() && s.inGame())
+		{
+			int leg = settings.soloMethod.legIndex(s.loadedTotal);
+			boolean more = leg < settings.soloMethod.legCount();
+			loadTarget = more ? settings.soloMethod.leg(leg).fish : -1;
+			loadDone = more ? s.loadedTotal - settings.soloMethod.start(leg) : 0;
+			if (lastLeg >= 0 && leg > lastLeg && config.notifyLoadTarget())
+			{
+				notifier.notify("Tempoross Autopilot: that load is done. Stop loading.");
+			}
+			lastLeg = leg;
+		}
+		else
+		{
+			loadTarget = -1;
+			loadDone = 0;
+			lastLeg = -1;
+		}
 
 		updatePathfinder(s);
 		resolveTargets(step);
@@ -418,6 +456,9 @@ public class TemporossAutopilotPlugin extends Plugin
 				break;
 			case CRATE:
 				npc = tracker.nearestNpc(tracker.getCrates());
+				break;
+			case OTHER_CRATE:
+				npc = tracker.getOtherCrate();
 				break;
 			case SPIRIT_POOL:
 				npc = poolOnYourSide();
@@ -538,19 +579,6 @@ public class TemporossAutopilotPlugin extends Plugin
 		else if (s.storm >= 0 && s.storm < config.stormWarnAt() - 10)
 		{
 			stormWarned = false;
-		}
-
-		if (loadTarget > 0 && s.loadedThisRound >= loadTarget)
-		{
-			if (!loadTargetWarned && config.notifyLoadTarget())
-			{
-				notifier.notify("Tempoross Autopilot: " + loadTarget + " loaded. Stop loading this round.");
-			}
-			loadTargetWarned = true;
-		}
-		else
-		{
-			loadTargetWarned = false;
 		}
 
 		int permits = s.inGame() ? Permits.earned(s.points) : 0;
@@ -718,6 +746,12 @@ public class TemporossAutopilotPlugin extends Plugin
 	public List<Instruction> getUpcoming()
 	{
 		return upcoming;
+	}
+
+	/** Fish loaded so far in this solo leg. */
+	public int getLoadDone()
+	{
+		return loadDone;
 	}
 
 	public int getLoadTarget()

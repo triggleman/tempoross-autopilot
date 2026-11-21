@@ -9,6 +9,8 @@ public enum Target
 	FISHING_SPOT,
 	SHRINE,
 	CRATE,
+	/** The ammunition crate you didn't load into first (split loads). */
+	OTHER_CRATE,
 	SPIRIT_POOL,
 	TETHER,
 	DAMAGED_TETHER,

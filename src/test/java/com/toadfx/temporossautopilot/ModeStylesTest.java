@@ -63,6 +63,6 @@ public class ModeStylesTest
 		s.freeSlots = 11;
 		Instruction i = Planner.plan(s, p);
 		assertEquals(Target.CRATE, i.getTarget());
-		assertTrue(i.getDetail().contains("Stop at 17"));
+		assertTrue(i.getDetail().contains("Load exactly 17"));
 	}
 }

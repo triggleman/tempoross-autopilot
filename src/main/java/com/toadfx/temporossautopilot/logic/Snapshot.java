@@ -60,6 +60,20 @@ public class Snapshot
 
 	/** Fish this player has loaded since the current energy round started. */
 	public int loadedThisRound;
+	/** Fish this player has loaded this game (solo routes count legs from this). */
+	public int loadedTotal;
+	/** Milliseconds since your last load, or -1 if none yet this game. */
+	public int msSinceLoad = -1;
+	/** Fish loaded into the crate you're standing at, since the round or the pool started. */
+	public int loadedHere;
+	/** True if the crate you're at is the first one you loaded into since the round or pool started. */
+	public boolean atFirstCrate;
+	/** Your harpoonfish lying on the ground (dropped this game). */
+	public int groundFish;
+	/** Tempoross's energy when this round started, or -1. */
+	public int roundStartEnergy = -1;
+	/** Essence when the spirit pool opened this round, or -1. */
+	public int poolOpenEssence = -1;
 	/** Waves that have started in this energy round. */
 	public int wavesThisRound;
 	/** Seconds until the storm reaches the danger mark at its current rate, or -1 if not rising. */
@@ -84,6 +98,8 @@ public class Snapshot
 		c.spiritPool = spiritPool; c.poolInactive = poolInactive;
 		c.fireDistance = fireDistance; c.damagedTetherDistance = damagedTetherDistance;
 		c.nearCrate = nearCrate; c.cooking = cooking; c.loadedThisRound = loadedThisRound; c.wavesThisRound = wavesThisRound;
+		c.loadedTotal = loadedTotal; c.msSinceLoad = msSinceLoad; c.loadedHere = loadedHere; c.atFirstCrate = atFirstCrate;
+		c.groundFish = groundFish; c.roundStartEnergy = roundStartEnergy; c.poolOpenEssence = poolOpenEssence;
 		c.stormSecondsLeft = stormSecondsLeft; c.secondsToCrate = secondsToCrate;
 		return c;
 	}

@@ -45,6 +45,8 @@ public final class Loadout
 				return new Loadout(6, true, 19, "Infernal or dragon harpoon", "Tome of water, or a steam battlestaff at high Fishing");
 			case SOLO_FIVE_ROUNDS:
 				return new Loadout(0, false, 27, "Dragon or barb-tail harpoon (wear it)", "Take about 4 buckets between rounds, up to 10 if fires are near the spots");
+			case SOLO_TEN_PERMITS:
+				return new Loadout(SETTING, false, 19, "Not the crystal harpoon: the wiki says this route doesn't work with it", "Dragon or infernal harpoon");
 			case SOLO_XP:
 				return new Loadout(SETTING, false, 0, "Crystal harpoon (most XP), or dragon", "Elven signet saves crystal harpoon charges");
 			case MAX_XP:
