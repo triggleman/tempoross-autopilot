@@ -153,7 +153,7 @@ public class GameTracker
 		if (id == Ids.DOUBLE_SPOT)
 		{
 			doubles.put(npc, System.currentTimeMillis());
-			if (game != null && phase == Phase.ENERGY && nearMe(npc, 20))
+			if (game != null && phase == Phase.ENERGY && onYourSide(npc))
 			{
 				// Only doubles on your side of the island count (mass worlds have them everywhere).
 				game.doubles++;
@@ -746,7 +746,8 @@ public class GameTracker
 		s.fishingLevel = client.getRealSkillLevel(Skill.FISHING);
 		s.waveIncoming = waveIncoming;
 		s.tethered = client.getVarbitValue(VarbitID.TEMPOROSS_TETHERED) > 0;
-		s.doubleSpot = !doubles.isEmpty();
+		yourDouble = doubles.isEmpty() ? null : nearestByWalk(doubles.keySet(), DOUBLE_MAX_WALK_TICKS);
+		s.doubleSpot = yourDouble != null;
 		s.spiritPool = anyPool(true);
 		s.poolInactive = anyPool(false);
 		s.fireDistance = nearestDistance(fires, here);
@@ -887,10 +888,73 @@ public class GameTracker
 		return storm;
 	}
 
-	/** The nearest double spot, or null. */
+	/** Don't send you to a double spot that takes longer than this to walk to (about 40 tiles). */
+	public static final int DOUBLE_MAX_WALK_TICKS = 20;
+	/** Returned by the walk-time function before the first flood of the tick. */
+	public static final int WALK_UNKNOWN = -2;
+
+	/** Running ticks to an NPC (-1 can't reach, {@link #WALK_UNKNOWN} not worked out yet). Set by the plugin. */
+	private java.util.function.ToIntFunction<NPC> walkTicks;
+
+	public void setWalkTicks(java.util.function.ToIntFunction<NPC> walkTicks)
+	{
+		this.walkTicks = walkTicks;
+	}
+
+	/**
+	 * The NPC you can walk to soonest, within maxTicks. The straight-line nearest can be across
+	 * the water, a long walk round. Falls back to straight-line when walking times aren't known.
+	 */
+	public NPC nearestByWalk(java.util.Collection<NPC> npcs, int maxTicks)
+	{
+		if (walkTicks == null)
+		{
+			return nearestNpc(npcs);
+		}
+		NPC best = null;
+		int bestTicks = Integer.MAX_VALUE;
+		for (NPC n : npcs)
+		{
+			int t = walkTicks.applyAsInt(n);
+			if (t == WALK_UNKNOWN)
+			{
+				return nearestNpc(npcs);
+			}
+			if (t >= 0 && t <= maxTicks && t < bestTicks)
+			{
+				bestTicks = t;
+				best = n;
+			}
+		}
+		return best;
+	}
+
+	/** The double spot on your side (shortest walk, at most {@link #DOUBLE_MAX_WALK_TICKS}), or null. */
 	public NPC getDoubleSpot()
 	{
-		return doubles.isEmpty() ? null : nearestNpc(doubles.keySet());
+		NPC d = yourDouble;
+		return d != null && doubles.containsKey(d) ? d : null;
+	}
+
+	/** Within walking reach (about 40 tiles), or within 20 tiles in a straight line when walking times aren't known. */
+	private boolean onYourSide(NPC npc)
+	{
+		int ticks = walkTicks == null ? WALK_UNKNOWN : walkTicks.applyAsInt(npc);
+		if (ticks == WALK_UNKNOWN)
+		{
+			return nearMe(npc, 20);
+		}
+		return ticks >= 0 && ticks <= DOUBLE_MAX_WALK_TICKS;
+	}
+
+	/** The double spot on your side, worked out once a tick (overlays read it every frame). */
+	private volatile NPC yourDouble;
+
+	/** The fishing spot you can walk to soonest, or null. */
+	public NPC getFishingSpot()
+	{
+		NPC n = nearestByWalk(spots, Integer.MAX_VALUE);
+		return n != null ? n : nearestNpc(spots);
 	}
 
 	/** When a double spot appeared (epoch ms), or 0. */

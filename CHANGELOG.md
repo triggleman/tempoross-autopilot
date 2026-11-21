@@ -9,6 +9,7 @@ First version.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).
 - Next step box, points and permits box, storm warnings with time left, scene highlights,
   crate load counter.
+- Double spots and fishing spots are picked by walking time, like the spirit pool: a double across the water (a long walk round) is ignored, and only doubles within about 40 tiles of walking count.
 - Channel buttons (YouTube, Twitch, Kick, TikTok) at the bottom of the side panel, open in your web browser; can be turned off. Badges in the README.
 - What to bring: each style has its own packing list (buckets, Humidify runes, free slots, best harpoon and more) in the side panel, ticked against your inventory; solo styles ask for the wiki bucket counts (4 for Recommended solo, 6 for Solo max permits, none to start for 5 rounds).
 - New duo style "ToadFx duo route": 3 buckets (hammer and rope unless you wear the full spirit angler set), the mass route's opener, then the spirit pool in thirds (100 to 60, 60 to 30, 30 to 0) with a full cooked bag ready for each next round.

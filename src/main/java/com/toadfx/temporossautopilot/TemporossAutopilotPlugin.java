@@ -153,6 +153,16 @@ public class TemporossAutopilotPlugin extends Plugin
 	{
 		tracker = new GameTracker(client, gear);
 		tracker.setListeners(this::onGameEnd, this::onDoubleSpot, this::onWave);
+		// Walking time decides which double spot, fishing spot and pool is "yours".
+		tracker.setWalkTicks(n ->
+		{
+			if (!pathfinder.isReady())
+			{
+				return GameTracker.WALK_UNKNOWN;
+			}
+			WorldPoint p = n.getWorldLocation();
+			return p == null ? -1 : pathfinder.ticksToArea(p, npcSize(n));
+		});
 		overlayManager.add(stepOverlay);
 		overlayManager.add(permitOverlay);
 		overlayManager.add(topOverlay);
@@ -404,7 +414,7 @@ public class TemporossAutopilotPlugin extends Plugin
 				npc = tracker.getDoubleSpot();
 				break;
 			case FISHING_SPOT:
-				npc = tracker.getDoubleSpot() != null ? tracker.getDoubleSpot() : tracker.nearestNpc(tracker.getSpots());
+				npc = tracker.getDoubleSpot() != null ? tracker.getDoubleSpot() : tracker.getFishingSpot();
 				break;
 			case CRATE:
 				npc = tracker.nearestNpc(tracker.getCrates());
