@@ -8,6 +8,7 @@ import com.toadfx.temporossautopilot.coach.Session;
 import com.toadfx.temporossautopilot.logic.Instruction;
 import com.toadfx.temporossautopilot.logic.Permits;
 import com.toadfx.temporossautopilot.logic.Phase;
+import com.toadfx.temporossautopilot.logic.Planner;
 import com.toadfx.temporossautopilot.logic.Snapshot;
 import com.toadfx.temporossautopilot.logic.Urgency;
 import com.toadfx.temporossautopilot.model.GameMode;
@@ -54,6 +55,8 @@ public class TemporossAutopilotPanel extends PluginPanel
 	private final JLabel styleNote = new JLabel();
 	private final JLabel stepTitle = new JLabel();
 	private final JLabel stepDetail = new JLabel();
+	private final JPanel bringRows = new JPanel();
+	private JPanel bringSection;
 	private final JPanel gameRows = new JPanel();
 	private final JPanel pointRows = new JPanel();
 	private final JPanel sessionRows = new JPanel();
@@ -88,6 +91,8 @@ public class TemporossAutopilotPanel extends PluginPanel
 		}
 
 		content.add(section("Play style", settingsCard(config)));
+		bringSection = section("What to bring", rows(bringRows));
+		content.add(bringSection);
 
 		JPanel stepCard = card();
 		stepTitle.setFont(FontManager.getRunescapeBoldFont());
@@ -235,6 +240,20 @@ public class TemporossAutopilotPanel extends PluginPanel
 				then += (then.isEmpty() ? "Then: " : " > ") + next.getTitle();
 			}
 			stepDetail.setText(html(step.getDetail() + (then.isEmpty() ? "" : "\n" + then)).replace("\n", "<br>"));
+		}
+
+		bringRows.removeAll();
+		bringSection.setVisible(!s.inGame());
+		if (!s.inGame())
+		{
+			for (Planner.BringItem item : Planner.bringList(s, plugin.settings()))
+			{
+				String mark = item.have == null ? "\u2022 " : item.have ? "\u2714 " : "\u2718 ";
+				JLabel l = new JLabel(html(mark + item.text));
+				l.setForeground(item.have == null ? MUTED : item.have ? GOOD : NOW);
+				l.setAlignmentX(Component.LEFT_ALIGNMENT);
+				bringRows.add(l);
+			}
 		}
 
 		gameRows.removeAll();

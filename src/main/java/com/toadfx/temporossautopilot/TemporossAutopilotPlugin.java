@@ -356,7 +356,8 @@ public class TemporossAutopilotPlugin extends Plugin
 		}
 	}
 
-	private PlannerSettings settings()
+	/** The planner settings from the current config. */
+	public PlannerSettings settings()
 	{
 		PlannerSettings p = new PlannerSettings();
 		p.mode = config.gameMode();

@@ -631,6 +631,9 @@ public class GameTracker
 				{
 					rope = true;
 				}
+				s.hasHumidifyRunes |= id == net.runelite.api.gameval.ItemID.BH_RUNE_POUCH
+					|| id == net.runelite.api.gameval.ItemID.DIVINE_RUNE_POUCH
+					|| id == net.runelite.api.gameval.ItemID.ASTRALRUNE;
 				harpoon |= Ids.HARPOONS.contains(id);
 				hammer |= Ids.HAMMERS.contains(id);
 				s.carriesImcando |= id == net.runelite.api.gameval.ItemID.IMCANDO_HAMMER;

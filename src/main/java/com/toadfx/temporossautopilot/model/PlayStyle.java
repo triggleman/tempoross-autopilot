@@ -15,7 +15,7 @@ public enum PlayStyle
 	MAX_XP("Max Fishing XP", "Theoatrix XP: never cook, crystal harpoon, spirit angler outfit", CookRule.NEVER, "Fishing XP per hour", Modes.TEAM, SoloMethod.STYLE),
 	FIREFIGHTER("Firefighter", "Douse fires and fix masts for 40 points each (Humidify helps)", CookRule.ALWAYS, "points per game", Modes.TEAM, SoloMethod.STYLE),
 	// ---- Solo (OSRS Wiki solo methods)
-	SOLO_RECOMMENDED("Recommended solo", "Wiki 17 / 19 / 19 / 27: cook and load exact counts each round. No spells needed", CookRule.ALWAYS, "permits per hour", Modes.SOLO, SoloMethod.ROUTE_17_19_19_27),
+	SOLO_RECOMMENDED("Recommended solo", "Wiki 17 / 19 / 19 / 27: cook and load exact counts each round. Humidify helps", CookRule.ALWAYS, "permits per hour", Modes.SOLO, SoloMethod.ROUTE_17_19_19_27),
 	SOLO_FIREFIGHT("Solo max permits", "Wiki cooking + firefighting: 17 / 19 / 19 and douse fires for points (Humidify helps)", CookRule.ALWAYS, "permits per game", Modes.SOLO, SoloMethod.FIREFIGHTING),
 	SOLO_FIVE_ROUNDS("Solo 5 rounds", "Wiki 5-round method: 26 / 26 / 28 a round, most points per game", CookRule.ALWAYS, "points per game", Modes.SOLO, SoloMethod.FIVE_ROUNDS),
 	SOLO_XP("Solo max Fishing XP", "Wiki no-cooking method: 26, then 27 raw a trip. Crystal harpoon", CookRule.NEVER, "Fishing XP per hour", Modes.SOLO, SoloMethod.NO_COOK),
@@ -131,6 +131,12 @@ public enum PlayStyle
 	public int openingBatch()
 	{
 		return this == MAX_POINTS || this == MY_ROUTE || this == DUO_ROUTE ? 8 : 9;
+	}
+
+	/** What to bring for this style. */
+	public Loadout loadout()
+	{
+		return Loadout.of(this);
 	}
 
 	/** Todd's own routes (mass and duo). */

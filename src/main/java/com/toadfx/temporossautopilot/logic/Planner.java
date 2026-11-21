@@ -220,20 +220,95 @@ public final class Planner
 		{
 			out.add(o.getTitle().replace("Wear your ", "your "));
 		}
+		if (set.style.loadout().wantsHumidify() && !s.hasHumidifyRunes)
+		{
+			out.add("Humidify runes (rune pouch, Lunar spellbook)");
+		}
+		return out;
+	}
+
+	/** One line of the "what to bring" list: the item and whether you have it (null = can't tell). */
+	public static final class BringItem
+	{
+		public final String text;
+		public final Boolean have;
+
+		BringItem(String text, Boolean have)
+		{
+			this.text = text;
+			this.have = have;
+		}
+	}
+
+	/**
+	 * Everything to bring for the chosen style, ticked against what you're carrying. Tools you
+	 * can take from the crates on the dock are marked as such.
+	 */
+	public static List<BringItem> bringList(Snapshot s, PlannerSettings set)
+	{
+		com.toadfx.temporossautopilot.model.Loadout kit = set.style.loadout();
+		List<BringItem> out = new ArrayList<>();
+		Harpoon own = bestOwnedHarpoon(s, set);
+		if (set.barehanded)
+		{
+			out.add(new BringItem("Barehanded: no harpoon", null));
+		}
+		else if (own != null)
+		{
+			out.add(new BringItem("Your " + own.getLabel(), s.carriedHarpoon != null && s.carriedHarpoon.rank(set.style) >= own.rank(set.style)));
+		}
+		else
+		{
+			out.add(new BringItem("A harpoon (crate on the dock)", s.hasHarpoon));
+		}
+		boolean spiritSet = countSpirit(s.wearsSpirit) == 4;
+		if (countSpirit(s.ownsSpirit) == 4)
+		{
+			out.add(new BringItem("Spirit angler outfit (works as a rope)", spiritSet));
+		}
+		else
+		{
+			out.add(new BringItem("Rope (crate on the dock)", s.hasRope));
+			if (countSpirit(s.ownsSpirit) + countSpirit(s.ownsAngler) > 0)
+			{
+				out.add(new BringItem("Your angler pieces (+XP)", outfit(s) == null));
+			}
+		}
+		if (s.ownsImcando)
+		{
+			out.add(new BringItem("Imcando hammer (wear it)", s.carriesImcando));
+		}
+		else if (!(set.style == PlayStyle.DUO_ROUTE && spiritSet))
+		{
+			out.add(new BringItem("Hammer (crate on the dock)", s.hasHammer));
+		}
+		int buckets = bucketsWanted(set);
+		if (buckets > 0)
+		{
+			out.add(new BringItem(buckets + " buckets of water (crate + pump)", s.waterBuckets >= buckets));
+		}
+		if (kit.wantsHumidify())
+		{
+			out.add(new BringItem("Humidify runes in a rune pouch", s.hasHumidifyRunes));
+		}
+		if (kit.getFreeSlots() > 0)
+		{
+			out.add(new BringItem(kit.getFreeSlots() + " free slots for fish", s.freeSlots >= kit.getFreeSlots()));
+		}
+		for (String tip : kit.getTips())
+		{
+			out.add(new BringItem(tip, null));
+		}
+		if (s.fishingLevel > 1 && s.fishingLevel < 90)
+		{
+			out.add(new BringItem("Admiral pie or fishing potion for more XP", null));
+		}
 		return out;
 	}
 
 	private static int bucketsWanted(PlannerSettings set)
 	{
-		if (set.style == PlayStyle.FIREFIGHTER)
-		{
-			return Math.max(4, set.bucketsWanted);
-		}
-		if (set.style == PlayStyle.DUO_ROUTE)
-		{
-			return Math.max(DUO_BUCKETS, set.bucketsWanted);
-		}
-		return set.bucketsWanted;
+		return set.style.loadout().buckets(set.bucketsWanted);
 	}
 
 	private static String readyLine(PlannerSettings set)
@@ -437,8 +512,6 @@ public final class Planner
 
 	// --------------------------------------------------------------------- ToadFx duo route
 
-	/** Buckets of water to bring for the duo route. */
-	static final int DUO_BUCKETS = 3;
 	/** Stop attacking the spirit pool once Tempoross's essence is down to this, by round. */
 	static final int[] DUO_POOL_TO = {60, 30, 0};
 

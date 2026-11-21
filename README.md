@@ -40,6 +40,24 @@ highlights and your post-game grade all follow the style.
 | **Chill: one permit** | Any | Gets you to 2,000 points, then tells you you're safe | reaching 2,000 |
 | **Custom** | Any | Your own cooking rule and points target | your target |
 
+## What to bring
+
+The side panel has a **What to bring** list for the style you picked, ticked against what you're carrying (green = got it, red = missing). In the Ruins of Unkah you also get a chat line naming anything you own but left behind.
+
+Every style: your best harpoon, the full spirit angler outfit (it works as a rope) or a rope, and a hammer (the Imcando hammer is best: you can wear it and waves can't take it). Rope, hammer, harpoon and buckets are in the crates on the dock.
+
+| Style | Buckets of water | Also bring |
+|---|---|---|
+| Recommended solo | 4 | Humidify runes in a rune pouch; infernal or barb-tail harpoon |
+| Solo max permits | 6 | Humidify runes; 19 free slots; infernal or dragon harpoon; tome of water or steam battlestaff |
+| Solo 5 rounds | 0 to start (about 4 between rounds, up to 10 near fires) | 27 free slots; dragon or barb-tail harpoon, worn |
+| Solo max Fishing XP | Your setting | Crystal harpoon; elven signet |
+| Firefighter | At least 4 | Humidify runes help |
+| ToadFx duo route | At least 3 | Hammer only if you don't wear the full spirit angler outfit |
+| Other styles | Your setting ("Buckets to carry") | |
+
+Below 90 Fishing, an admiral pie or fishing potion adds XP. Solo numbers are from the OSRS Wiki's Tempoross strategies.
+
 ## Features
 
 - **Top instructions box**: at the top of the screen, what to do **now** (tether, repair, load, cook,
