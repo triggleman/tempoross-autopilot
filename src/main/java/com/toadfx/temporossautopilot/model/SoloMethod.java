@@ -32,13 +32,13 @@ public enum SoloMethod
 	/**
 	 * Jagd's 10+ permits route ("How to Solo Tempoross & Get 10+ Permits EVERY Run"): 16 takes
 	 * Tempoross to 10% energy (no waves or lightning), put the fires out, a full bag (19) before
-	 * 93% storm, pool to ~60%, a full bag, pool to 33%, then a full bag dropped at cannon 1,
+	 * 93% storm, pool to 63%, a full bag, pool to 33%, then a full bag dropped at cannon 1,
 	 * 16 into cannon 2, pick up and load cannon 1, finish. A full bag is 19 with 7 buckets, a
 	 * rope and a hammer (barbarian fishing, or 6 buckets and a harpoon).
 	 */
 	TEN_PERMITS("10 permits, Jagd (16 / 19 / 19 / 19 + 16)",
 		new Leg[]{Leg.of(16).staysUp(), Leg.of(19).clearFires(), Leg.of(19), Leg.of(35).dropTrick(19)},
-		new PoolRule[]{PoolRule.to(60), PoolRule.to(60), PoolRule.to(33), PoolRule.FINISH}),
+		new PoolRule[]{PoolRule.to(63), PoolRule.to(63), PoolRule.to(33), PoolRule.FINISH}),
 
 	/** Wiki cooking + firefighting: 17, 19, pool, 19, pool to under 50%, 2, finish. */
 	FIREFIGHTING("Cooking + firefighting (17 / 19 / 19 / 2)",

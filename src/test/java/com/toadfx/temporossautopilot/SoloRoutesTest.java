@@ -203,12 +203,12 @@ public class SoloRoutesTest
 		Instruction fish = Planner.plan(s, p);
 		assertEquals(Target.FISHING_SPOT, fish.getTarget());
 		assertTrue(fish.getDetail().contains("/ 19"));
-		// After the full bag: pool to ~60%.
+		// After the full bag: pool to 63%.
 		under(s);
 		s.loadedTotal = 35;
 		s.essence = 80;
-		assertTrue(Planner.plan(s, p).getDetail().contains("60%"));
-		s.essence = 59;
+		assertTrue(Planner.plan(s, p).getDetail().contains("63%"));
+		s.essence = 62;
 		assertEquals(Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
 		// After the next full bag: pool to 33%.
 		s.loadedTotal = 54;
@@ -231,7 +231,7 @@ public class SoloRoutesTest
 		assertTrue(load.getDetail().contains("Finish the load"));
 		s.loadedTotal = 35;
 		s.cooked = 0;
-		assertTrue(Planner.plan(s, p).getDetail().contains("60%"));
+		assertTrue(Planner.plan(s, p).getDetail().contains("63%"));
 		// Storm salvage: only raw left, so pool first and load the rest after.
 		s.loadedTotal = 28;
 		s.raw = 7;
@@ -251,6 +251,22 @@ public class SoloRoutesTest
 		s.raw = 16;
 		s.freeSlots = 3;
 		assertEquals("Cook at the shrine", Planner.plan(s, p).getTitle());
+	}
+
+	@Test
+	public void tenPermitsNeverCooksEarlyAtLowLevel()
+	{
+		// Todd: after emptying the bag, at 7 fish it kept sending him to cook (starter batch at <85 Fishing).
+		PlannerSettings p = solo(PlayStyle.SOLO_TEN_PERMITS);
+		for (int loaded : new int[]{0, 16, 35, 54})
+		{
+			Snapshot s = up();
+			s.fishingLevel = 70;
+			s.loadedTotal = loaded;
+			s.raw = 7;
+			s.freeSlots = 12;
+			assertEquals("loaded " + loaded, Target.FISHING_SPOT, Planner.plan(s, p).getTarget());
+		}
 	}
 
 	@Test
