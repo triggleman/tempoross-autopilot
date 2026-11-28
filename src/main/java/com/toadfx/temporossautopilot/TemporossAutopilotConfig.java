@@ -202,8 +202,8 @@ public interface TemporossAutopilotConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(keyName = "showFireTimers", name = "Lightning and fire timers", position = 10, section = overlaySection,
-		description = "Countdown on lightning clouds until the fire lands, and on fires until they spread")
+	@ConfigItem(keyName = "showFireTimers", name = "Fire spread timers", position = 10, section = overlaySection,
+		description = "Countdown on fires until they spread")
 	default boolean showFireTimers()
 	{
 		return true;
@@ -295,7 +295,7 @@ public interface TemporossAutopilotConfig extends Config
 
 	@Alpha
 	@ConfigItem(keyName = "timerColor", name = "Timers", position = 4, section = colourSection,
-		description = "Lightning, fire and wave timers, and the countdowns in the top box")
+		description = "Fire and wave timers, and the countdowns in the top box")
 	default Color timerColor()
 	{
 		return new Color(255, 235, 0);

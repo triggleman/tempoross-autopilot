@@ -55,6 +55,7 @@ import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.Notifier;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -83,6 +84,9 @@ public class TemporossAutopilotPlugin extends Plugin
 
 	@Inject
 	private TemporossAutopilotConfig config;
+
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private ConfigManager configManager;
@@ -204,6 +208,17 @@ public class TemporossAutopilotPlugin extends Plugin
 		targetNpc = null;
 		targetObject = null;
 		targetCrate = null;
+		upcoming = Collections.emptyList();
+		loadTarget = -1;
+		loadDone = 0;
+		lastLeg = -1;
+		inLobby = false;
+		stormWarned = false;
+		lastPermits = 0;
+		panelTick = 0;
+		pathfinder.reset();
+		panel = null;
+		navButton = null;
 	}
 
 	// ------------------------------------------------------------------ events
@@ -339,20 +354,26 @@ public class TemporossAutopilotPlugin extends Plugin
 		}
 		if ("coachReset".equals(e.getKey()) && config.coachReset())
 		{
-			history.clear();
-			bests = new PersonalBests();
-			lastGame = null;
-			session.reset();
-			configManager.unsetRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_HISTORY);
-			configManager.unsetRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_BESTS);
-			configManager.setConfiguration(TemporossAutopilotConfig.GROUP, "coachReset", false);
+			// ConfigChanged can arrive on the Swing thread; history is written on the client thread.
+			clientThread.invokeLater(() ->
+			{
+				history.clear();
+				bests = new PersonalBests();
+				lastGame = null;
+				session.reset();
+				configManager.unsetRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_HISTORY);
+				configManager.unsetRSProfileConfiguration(TemporossAutopilotConfig.GROUP, KEY_BESTS);
+				configManager.setConfiguration(TemporossAutopilotConfig.GROUP, "coachReset", false);
+				refreshPanel();
+			});
 		}
-		if (panel != null)
+		TemporossAutopilotPanel p = panel;
+		if (p != null)
 		{
 			SwingUtilities.invokeLater(() ->
 			{
-				panel.syncSettings(config);
-				panel.refresh();
+				p.syncSettings(config);
+				p.refresh();
 			});
 		}
 	}
@@ -398,9 +419,9 @@ public class TemporossAutopilotPlugin extends Plugin
 		upcoming = Lookahead.next(s, settings, 2);
 
 		// The panel only needs a few updates a second.
-		if (panel != null && (++panelTick % 2 == 0 || s.phase != Phase.IDLE))
+		if (++panelTick % 2 == 0 || s.phase != Phase.IDLE)
 		{
-			SwingUtilities.invokeLater(panel::refresh);
+			refreshPanel();
 		}
 	}
 
@@ -644,10 +665,7 @@ public class TemporossAutopilotPlugin extends Plugin
 				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=f0b44c>New personal best</col>: " + String.join(", ", beaten), null);
 			}
 		}
-		if (panel != null)
-		{
-			SwingUtilities.invokeLater(panel::refresh);
-		}
+		refreshPanel();
 	}
 
 	private void saveHistory()
@@ -698,9 +716,16 @@ public class TemporossAutopilotPlugin extends Plugin
 		{
 			lastGame = history.get(history.size() - 1);
 		}
-		if (panel != null)
+		refreshPanel();
+	}
+
+	/** Repaints the side panel on the Swing thread (safe to call from any thread). */
+	private void refreshPanel()
+	{
+		TemporossAutopilotPanel p = panel;
+		if (p != null)
 		{
-			SwingUtilities.invokeLater(panel::refresh);
+			SwingUtilities.invokeLater(p::refresh);
 		}
 	}
 

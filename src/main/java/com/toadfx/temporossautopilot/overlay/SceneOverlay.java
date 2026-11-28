@@ -75,16 +75,6 @@ public class SceneOverlay extends Overlay
 		long now = System.currentTimeMillis();
 		if (config.showFireTimers() && s.inGame())
 		{
-			for (Map.Entry<GameObject, Long> e : tracker.getClouds().entrySet())
-			{
-				long left = e.getValue() - now;
-				if (left > 0)
-				{
-					int total = e.getKey().getId() == Ids.CLOUD_SHORT ? Ids.CLOUD_SHORT_MS : Ids.CLOUD_MS;
-					outlineTile(g, e.getKey().getCanvasTilePoly(), config.fireColor(), THIN);
-					timer(g, e.getKey().getCanvasTextLocation(g, "0.0", 0), left, total, config.timerColor(), "Fire");
-				}
-			}
 			for (Map.Entry<GameObject, Long> e : tracker.getFireSpread().entrySet())
 			{
 				long left = e.getValue() - now;

@@ -64,8 +64,7 @@ public class GameTracker
 	/** Ticks spent outside the cove; a game only ends after a few, so a loading blip doesn't split it. */
 	private int outsideTicks;
 	private static final int OUTSIDE_TICKS_TO_END = 5;
-	/** Timers: when each lightning cloud turns to fire, and when each fire next spreads (epoch ms). */
-	private final Map<GameObject, Long> clouds = new ConcurrentHashMap<>();
+	/** Timer: when each fire next spreads (epoch ms). */
 	private final Map<GameObject, Long> fireSpread = new ConcurrentHashMap<>();
 	private volatile long waveHitsAt;
 	private final Set<GameObject> shrines = new HashSet<>();
@@ -257,14 +256,6 @@ public class GameTracker
 		{
 			supplyCrates.add(obj);
 		}
-		else if (id == Ids.CLOUD)
-		{
-			clouds.put(obj, System.currentTimeMillis() + Ids.CLOUD_MS);
-		}
-		else if (id == Ids.CLOUD_SHORT)
-		{
-			clouds.put(obj, System.currentTimeMillis() + Ids.CLOUD_SHORT_MS);
-		}
 		else if (id == Ids.FIRE_VISUAL)
 		{
 			fireSpread.put(obj, System.currentTimeMillis() + Ids.FIRE_SPREAD_MS);
@@ -278,7 +269,6 @@ public class GameTracker
 		damagedTethers.remove(obj);
 		pumps.remove(obj);
 		supplyCrates.remove(obj);
-		clouds.remove(obj);
 		fireSpread.remove(obj);
 	}
 
@@ -291,7 +281,6 @@ public class GameTracker
 		pools.clear();
 		chosenPool = null;
 		doubles.clear();
-		clouds.clear();
 		fireSpread.clear();
 		shrines.clear();
 		tethers.clear();
@@ -1139,11 +1128,6 @@ public class GameTracker
 	public Set<NPC> getPools()
 	{
 		return pools;
-	}
-
-	public Map<GameObject, Long> getClouds()
-	{
-		return clouds;
 	}
 
 	public Map<GameObject, Long> getFireSpread()

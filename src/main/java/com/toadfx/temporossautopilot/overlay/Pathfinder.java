@@ -438,4 +438,13 @@ public class Pathfinder
 	{
 		return ready;
 	}
+
+	/** Drops the flood and the collision snapshot (plugin shut down). */
+	public void reset()
+	{
+		ready = false;
+		flags = null;
+		dist = new int[0];
+		prev = new int[0];
+	}
 }

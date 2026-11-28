@@ -4,6 +4,7 @@
 
 First version.
 
+- Plugin Hub review pass: removed the lightning-cloud strike-tile outlines and countdowns (marking attack tiles at a boss is against Jagex's third-party client guidelines); "Reset history" now runs on the client thread; shutDown clears all per-run state and the path flood.
 - Seven play styles: Recommended mass, Max permits / hr, Max points / game, Max Fishing XP,
   Firefighter, Chill: one permit, Custom.
 - Mass, solo and duo modes, with wiki solo routes (17 / 19 / 19 / 27, 5 rounds, cooking + firefighting).

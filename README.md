@@ -71,13 +71,13 @@ Below 90 Fishing, an admiral pie or fishing potion adds XP. Solo numbers are fro
 
 - **Top instructions box**: at the top of the screen, what to do **now** (tether, repair, load, cook,
   fish or head to the spirit pool) with the reason and the points it's worth, the game timer and round,
-  a **coming up** list (wave hits in, lightning fire lands in, next fire spread, storm
+  a **coming up** list (wave hits in, next fire spread, storm
   fills in, Tempoross energy, double spot open) and **then** the next two steps after this one.
 - **Points and permits box**: live points, permits earned, points to the next permit and your bonus roll.
   Permits come at 2,000 points, then every 700.
-- **Lightning, fire and wave timers**: a countdown pie on each lightning cloud until the fire lands,
-  on each fire until it spreads, and on every mast and totem pole until the wave hits (green once
-  you're tethered, red on broken ones).
+- **Fire and wave timers**: a countdown pie on each fire until it spreads, and on every mast and
+  totem pole until the wave hits (green once you're tethered, red on broken ones). Lightning strike
+  tiles are not marked, in line with Jagex's third-party client guidelines.
 - **Spirit pool**: as soon as energy hits 0 (or is almost gone and you have nothing to load), you're
   sent to the spirit pool, highlighted even before it opens.
 - **Storm race**: if you're holding fish and the storm will fill before you can reach the crate,

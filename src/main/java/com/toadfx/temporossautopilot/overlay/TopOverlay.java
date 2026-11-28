@@ -193,18 +193,6 @@ public class TopOverlay extends Overlay
 		{
 			rows.add(new Row(s.tethered ? "Wave hits (tethered)" : "Wave hits: TETHER", secs(wave - now), s.tethered ? config.timerColor() : config.urgentColor()));
 		}
-		long fire = Long.MAX_VALUE;
-		for (long t : tracker.getClouds().values())
-		{
-			if (t > now && t < fire)
-			{
-				fire = t;
-			}
-		}
-		if (fire != Long.MAX_VALUE)
-		{
-			rows.add(new Row("Lightning fire lands", secs(fire - now), config.timerColor()));
-		}
 		if (!tracker.getFireSpread().isEmpty())
 		{
 			long spread = Long.MAX_VALUE;

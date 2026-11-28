@@ -62,16 +62,11 @@ public final class Ids
 		ObjectID.TEMPOROSS_CRATE_BUCKET,
 		ObjectID.TEMPOROSS_CRATE_HARPOON);
 
-	/** Lightning cloud shadow: a fire lands here. Short = a fire about to jump to this tile. */
-	public static final int CLOUD = ObjectID.TEMPOROSS_LIGHTNING_SHADOW;
-	public static final int CLOUD_SHORT = ObjectID.TEMPOROSS_LIGHTNING_SHADOW_SHORT;
+	// Lightning cloud shadows (where a strike lands) are deliberately not tracked: marking attack
+	// tiles at a boss is against Jagex's third-party client guidelines.
 	public static final int FIRE_VISUAL = ObjectID.TEMPOROSS_FIRE_VISUALS;
 
 	// Timings (milliseconds), as observed in game.
-	/** Cloud shadow to fire. */
-	public static final int CLOUD_MS = 9600;
-	/** Short shadow (spreading fire) to fire. */
-	public static final int CLOUD_SHORT_MS = 1200;
 	/** A fire spreads to a new tile this long after it starts. */
 	public static final int FIRE_SPREAD_MS = 24000;
 	/** "A colossal wave closes in" to the wave hitting. */
